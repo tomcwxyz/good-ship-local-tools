@@ -1,6 +1,19 @@
 # Changelog
 
-## 0.9.0 — in progress
+## 0.10.0 — in progress
+
+- turn the PDF page organiser into a local PDF workbench with page selection/ranges, extraction, blank pages, JPEG/PNG pages, page numbering, diagonal watermarks, crop-box controls, optional form flattening and explicit output metadata handling;
+- inspect PDF source forms, JavaScript actions, annotations and digital signatures while building a pack, and require acknowledgement before exporting signed sources;
+- add a separate PDF sanitiser that structurally rebuilds visible pages into a fresh document without carrying the original document catalog, annotations/links, forms, attachments, JavaScript, metadata or signatures;
+- add a CSV/TSV data pseudonymiser with stable per-column pseudonyms, masking, salted SHA-256 fingerprints, column removal and an explicitly separate reversible mapping export;
+- add a cautious possible personal-data finder for common high-confidence patterns including email, UK phone/postcode/NI, IPv4, URLs, date-like values and Luhn-valid card-like numbers;
+- add publication preflight for mixed PDF, Office, image and text-like batches, linking flagged files back to the appropriate local cleaner/inspector;
+- extend text diff so TXT/Markdown, DOCX and PDF text can be extracted locally on either side before comparison;
+- add tests for personal-data matching, pseudonymisation, PDF workbench geometry and structural PDF rebuilding;
+- extend cross-browser smoke coverage to the new standalone tools and real personal-data/pseudonymiser file paths;
+- correct the shared footer so it reflects the Apache-2.0 code licence and separate Good Ship brand boundary.
+
+## 0.9.0
 
 - adopt Apache-2.0 for the repository, with a NOTICE that keeps The Good Ship name, logos and visual identity outside the licence grant;
 - add cross-browser smoke testing for every built standalone HTML file in Chromium, Firefox and WebKit under `file://`;
@@ -8,7 +21,8 @@
 - fail browser smoke tests on page errors, console errors, unexpected external asset elements or network requests;
 - add a tag-driven release workflow that repeats source checks, tests, production verification and cross-browser smoke before publishing;
 - verify release tags match `package.json` version;
-- publish a versioned ZIP, renamed standalone HTML tools, licence/notice and release-level SHA-256 checksums.
+- publish a versioned ZIP, renamed standalone HTML tools, licence/notice and release-level SHA-256 checksums;
+- fix short TSV delimiter auto-detection when preserved trailing blank rows are present, discovered by the new real-browser gate.
 
 ## 0.8.0
 
