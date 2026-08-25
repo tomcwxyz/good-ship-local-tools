@@ -39,12 +39,13 @@ SVG, PDF, archive and document parsers should be treated as untrusted-input boun
 Run:
 
 ```bash
-npm install
+npm ci
 npm run check
 npm test
 npm run build
+npm run verify:dist
 ```
 
-For changes to security-sensitive or lossless transformations, add or update tests. For UI changes, open the generated standalone HTML, exercise keyboard navigation, and test the primary workflow with representative files.
+Use `npm install` instead of `npm ci` only when intentionally changing dependencies, and commit the resulting lockfile. For changes to security-sensitive or lossless transformations, add or update tests. For UI changes, open the generated standalone HTML, exercise keyboard navigation, and test the primary workflow with representative files.
 
 Before a release, smoke-test at least Chromium plus one other browser engine where practical.

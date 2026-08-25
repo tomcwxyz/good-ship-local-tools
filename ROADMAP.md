@@ -117,10 +117,9 @@ these properties:
 
 ## Release approach
 
-The public repository is now the canonical source and clean GitHub Actions builds are the release gate. Before the first tagged release:
+The public repository is now the canonical source and clean GitHub Actions builds are the release gate. 0.8 adds a Node 22 lockfile, `npm ci`, production-HTML verification and per-artefact SHA-256 checksums. Before the first tagged release:
 
 1. settle the code/content licence split;
-2. add a committed lockfile from a clean Node 22 install;
-3. smoke-test generated standalone HTML in Chromium and at least one WebKit/Firefox browser;
-4. attach the built `dist/` ZIP to tagged releases;
-5. keep GitHub Actions intentionally small: check → test → build, with release publication only on tags.
+2. smoke-test generated standalone HTML in Chromium and at least one WebKit/Firefox browser;
+3. attach the verified `dist/` ZIP (including `SHA256SUMS.txt`) to tagged releases;
+4. keep GitHub Actions intentionally small: install → source check → test → build → production verification, with release publication only on tags.

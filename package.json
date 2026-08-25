@@ -1,6 +1,6 @@
 {
   "name": "good-ship-local-tools",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": true,
   "type": "module",
   "description": "Small local-first tools. Nothing leaves your browser.",
@@ -10,6 +10,7 @@
     "check": "node scripts/check.mjs",
     "test": "node --test",
     "build": "node build.mjs",
+    "verify:dist": "node scripts/check-dist.mjs",
     "preview": "vite preview"
   },
   "devDependencies": {

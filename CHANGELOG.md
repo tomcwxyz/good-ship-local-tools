@@ -1,6 +1,14 @@
 # Changelog
 
-## 0.7.0 — in progress
+## 0.8.0 — in progress
+
+- commit a clean Node 22 npm lockfile and switch CI to reproducible `npm ci` installs with npm caching;
+- verify every built standalone HTML file after Vite has finished, not only the source tree;
+- fail production verification if an entry gains external script/style loading, active iframe/object/embed content, an unsealed connection policy or unexpected build assets;
+- generate `dist/SHA256SUMS.txt` for the launcher and every standalone tool;
+- add focused tests for production artefact verification.
+
+## 0.7.0
 
 - add local JSON inspection reports to the Office and PDF privacy inspectors;
 - make reports summary-only by default, omitting source filenames and metadata values;
