@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { findPersonalData, groupPersonalData, maskPersonalValue, redactDetectedText } from '../src/lib/privacy.js';
 
 test('personal-data finder recognises common UK-oriented patterns', () => {
-  const text = 'Email ada@example.org, postcode NE1 4ST, phone 07700 900123, NI QQ123456C, IP 192.168.1.10 and https://example.org/x.';
+  const text = 'Email ada@example.org, postcode NE1 4ST, phone 07700 900123, NI AB123456C, IP 192.168.1.10 and https://example.org/x.';
   const matches = findPersonalData(text);
   const types = new Set(matches.map(match => match.type));
   assert(types.has('email'));
@@ -12,6 +12,11 @@ test('personal-data finder recognises common UK-oriented patterns', () => {
   assert(types.has('ni-number'));
   assert(types.has('ipv4'));
   assert(types.has('url'));
+});
+
+test('NI matcher rejects prefixes containing letters not used for NI numbers', () => {
+  const matches = findPersonalData('Invalid examples: QQ123456C and BG123456A.', { types:['ni-number'] });
+  assert.equal(matches.length, 0);
 });
 
 test('invalid IPv4 and card-like digit runs are filtered', () => {
