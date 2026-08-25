@@ -25,3 +25,24 @@ export function uniqueArchiveName(input, used = new Set()) {
   used.add(candidate.toLocaleLowerCase('en-GB'));
   return candidate;
 }
+
+export function selectBatchFiles(files, {
+  maxFiles = 100,
+  maxTotalBytes = 300 * 1024 * 1024,
+} = {}) {
+  const selected = [];
+  const skipped = [];
+  let totalBytes = 0;
+
+  for (const file of files) {
+    const size = Number(file?.size) || 0;
+    if (selected.length >= maxFiles || totalBytes + size > maxTotalBytes) {
+      skipped.push(file);
+      continue;
+    }
+    selected.push(file);
+    totalBytes += size;
+  }
+
+  return { selected, skipped, totalBytes };
+}

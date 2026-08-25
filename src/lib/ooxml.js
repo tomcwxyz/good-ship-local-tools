@@ -101,7 +101,12 @@ export function inspectZipCentralDirectory(buffer, {
     const nameStart = offset + 46;
     const nameEnd = nameStart + nameLen;
     if (nameEnd > bytes.length) throw new Error('ZIP filename table is malformed.');
-    files.push({ name: decoder.decode(bytes.subarray(nameStart, nameEnd)), compressed, uncompressed });
+    const name = decoder.decode(bytes.subarray(nameStart, nameEnd));
+    const normalised = name.replace(/\\/g, '/');
+    if (normalised.startsWith('/') || /^[A-Za-z]:\//.test(normalised) || normalised.split('/').includes('..')) {
+      throw new Error('Package contains an unsafe internal path and was not opened.');
+    }
+    files.push({ name, compressed, uncompressed });
     offset = nameEnd + extraLen + commentLen;
   }
   return { entries, totalUncompressed, files };

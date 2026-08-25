@@ -105,3 +105,10 @@ test('descriptive Office metadata is only removed when explicitly selected', () 
   const explicitClean = cleanOfficePackage(files, { removeDescriptive: true });
   assert.equal(dec.decode(explicitClean.files['docProps/core.xml']).includes('Annual report'), false);
 });
+
+
+test('ZIP guard rejects path traversal entries before decompression', async () => {
+  const { inspectZipCentralDirectory } = await import('../src/lib/ooxml.js');
+  assert.throws(() => inspectZipCentralDirectory(fakeCentralZip({ name:'../outside.xml' })), /unsafe internal path/);
+  assert.throws(() => inspectZipCentralDirectory(fakeCentralZip({ name:'C:/outside.xml' })), /unsafe internal path/);
+});

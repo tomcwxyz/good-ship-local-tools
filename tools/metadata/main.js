@@ -1,7 +1,7 @@
 import { chrome, header, assurance, dropzoneMulti, download, fmtBytes, baseName, el } from '../../src/shell.js';
 import { zipSync } from 'fflate';
 import { processJPEG, processPNG } from '../../src/lib/metadata.js';
-import { uniqueArchiveName } from '../../src/lib/archive.js';
+import { uniqueArchiveName, selectBatchFiles } from '../../src/lib/archive.js';
 
 const root = chrome('metadata stripper');
 let view;
@@ -37,17 +37,28 @@ async function processFile(file) {
 }
 
 async function handleFiles(files) {
-  const candidates = files.slice(0, 100);
+  const batch = selectBatchFiles(files);
+  const candidates = batch.selected;
+  if (!candidates.length) {
+    render(el('div', { class:'gs-warn' },
+      el('span', {}, 'This batch exceeds the 300 MB combined input limit. Choose a smaller set of images.'),
+      el('button', { class:'gs-btn gs-btn-ghost', style:{ marginTop:'.75rem' }, onclick:start }, 'Choose again')));
+    return;
+  }
   const status = el('div', { class:'gs-mono gs-muted', 'aria-live':'polite' }, `Inspecting ${candidates.length} file${candidates.length === 1 ? '' : 's'}…`);
   render(status);
-  const results = await Promise.all(candidates.map(processFile));
-  showResults(results, files.length > candidates.length ? files.length - candidates.length : 0);
+  const results = [];
+  for (let i = 0; i < candidates.length; i++) {
+    status.textContent = `Inspecting ${i + 1} of ${candidates.length} · ${candidates[i].name}`;
+    results.push(await processFile(candidates[i]));
+  }
+  showResults(results, batch.skipped.length);
 }
 
 function showResults(results, omitted) {
   const wrap = el('div', { style:{ display:'flex', flexDirection:'column', gap:'1rem' } });
   wrap.append(header('tool · local-first', 'Metadata stripper', `${results.length} file${results.length === 1 ? '' : 's'} inspected locally.`));
-  if (omitted) wrap.append(el('div', { class:'gs-warn' }, el('span', {}, `${omitted} additional files were not opened. Batch processing is capped at 100 files.`)));
+  if (omitted) wrap.append(el('div', { class:'gs-warn' }, el('span', {}, `${omitted} additional file${omitted === 1 ? '' : 's'} were not opened. A batch is capped at 100 files and 300 MB combined input.`)));
 
   const valid = results.filter(r => !r.error);
   const dirty = valid.filter(r => r.removed.length);

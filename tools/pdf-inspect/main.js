@@ -44,7 +44,7 @@ async function handle(file) {
       fields: collectionSize(fields),
       signatures: Array.isArray(signatures) ? signatures.length : collectionSize(signatures),
       tagged: Boolean(markInfo?.Marked),
-      permissions: permissions?.size || 0,
+      permissions: collectionSize(permissions),
     });
   } catch (err) {
     const msg = /password/i.test(err?.message || '') ? 'Password-protected PDFs need to be unlocked first.' : (err?.message || String(err));
@@ -91,10 +91,18 @@ function showResult(file, bytes, pages, info, xmp, signals) {
     el('div', { class:'gs-mono gs-muted', style:{ fontSize:'.72rem' } }, fmtBytes(bytes.length)));
 
   const props = el('section', { class:'gs-card' }, el('div', { class:'gs-label', style:{ marginBottom:'.5rem' } }, 'document metadata'));
-  const skipInfo = new Set(['PDFFormatVersion','IsAcroFormPresent','IsXFAPresent','IsCollectionPresent','IsSignaturesPresent','Custom']);
+  const skipInfo = new Set(['PDFFormatVersion','IsAcroFormPresent','IsXFAPresent','IsCollectionPresent','IsSignaturesPresent']);
   let propCount = 0;
   for (const [key, value] of Object.entries(info)) {
     if (skipInfo.has(key)) continue;
+    if (key === 'Custom' && value && typeof value === 'object') {
+      for (const [customKey, customValue] of Object.entries(value)) {
+        const shown = displayValue(customValue);
+        if (!shown) continue;
+        props.append(propRow(`Custom · ${customKey}`, shown)); propCount++;
+      }
+      continue;
+    }
     const shown = displayValue(value);
     if (!shown) continue;
     props.append(propRow(key, shown)); propCount++;
