@@ -15,7 +15,12 @@ jobs:
       - run: npm run check
       - run: npm test
       - run: npm run build
+      - run: npm run verify:dist
       - uses: actions/upload-artifact@v4
         with:
           name: local-tools-dist
           path: dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dependency-lock
+          path: package-lock.json
