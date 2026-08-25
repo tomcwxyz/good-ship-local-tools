@@ -109,12 +109,40 @@ async function smokePage(browser, browserName, file) {
         const text = document.body?.innerText || '';
         return text.includes('Create structural clean copy') && text.includes('1 page');
       }, `${browserName} PDF sanitiser inspection`, 15_000);
+
+      await page.evaluate(() => {
+        window.__gsSmokeDownload = null;
+        const originalClick = HTMLAnchorElement.prototype.click;
+        HTMLAnchorElement.prototype.click = function smokeCaptureClick() {
+          if (this.download) {
+            window.__gsSmokeDownload = { filename:this.download, href:this.href };
+            return;
+          }
+          return originalClick.call(this);
+        };
+      });
       await page.locator('#sanitize-ack').check();
-      const downloadPromise = page.waitForEvent('download', { timeout:15_000 });
       await page.getByRole('button', { name:'Create structural clean copy' }).click();
-      const cleanDownload = await downloadPromise;
-      if (cleanDownload.suggestedFilename() !== 'smoke-structural-clean.pdf') failures.push(`unexpected sanitiser download name: ${cleanDownload.suggestedFilename()}`);
-      if (await cleanDownload.failure()) failures.push(`PDF sanitiser download failed: ${await cleanDownload.failure()}`);
+      await page.waitForFunction(() => window.__gsSmokeDownload || (document.body?.innerText || '').includes('Could not rebuild this PDF'), null, { timeout:15_000 });
+      const generated = await page.evaluate(async () => {
+        const record = window.__gsSmokeDownload;
+        if (!record) return null;
+        const response = await fetch(record.href);
+        const bytes = new Uint8Array(await response.arrayBuffer());
+        return {
+          filename:record.filename,
+          size:bytes.length,
+          prefix:String.fromCharCode(...bytes.slice(0, 5)),
+          status:document.body?.innerText || '',
+        };
+      });
+      if (!generated) failures.push(`PDF sanitiser did not create a blob output: ${(await page.locator('body').innerText()).slice(-500)}`);
+      else {
+        if (generated.filename !== 'smoke-structural-clean.pdf') failures.push(`unexpected sanitiser download name: ${generated.filename}`);
+        if (generated.size < 100) failures.push(`PDF sanitiser output was unexpectedly small: ${generated.size} bytes`);
+        if (generated.prefix !== '%PDF-') failures.push(`PDF sanitiser output did not start with %PDF- (got ${JSON.stringify(generated.prefix)})`);
+        if (!generated.status.includes('rebuilt into a fresh PDF')) failures.push('PDF sanitiser did not report a successful rebuild.');
+      }
     }
 
     if (networkRequests.length) failures.push(`network request(s): ${[...new Set(networkRequests)].join(', ')}`);
