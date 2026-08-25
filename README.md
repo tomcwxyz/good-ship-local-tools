@@ -31,8 +31,9 @@ The collection is deliberately stricter than “we promise not to upload it”:
 - every HTML entry has a Content Security Policy that blocks unexpected external resources;
 - remote font loading has been removed;
 - PDF.js scripting and eval are explicitly disabled when opening PDFs;
-- `npm run check` enforces the no-network-source rule and CSP coverage in CI;
-- critical transforms and privacy boundaries have automated tests, including OOXML package cleaning and PDF metadata removal.
+- `npm run check` enforces the no-network-source rule and source CSP coverage in CI;
+- `npm run verify:dist` checks the **built** standalone HTML for sealed CSP, external assets/embeds and unexpected build files, then writes `SHA256SUMS.txt`;
+- critical transforms and privacy boundaries have automated tests, including OOXML package cleaning and PDF metadata removal;
 - summary inspection reports omit source filenames and metadata values by default, using a SHA-256 fingerprint when available.
 
 This does **not** mean every operation is lossless. Tools that rasterise or
@@ -65,7 +66,8 @@ tools/
   convert/
 
 test/                     Node built-in tests
-scripts/check.mjs         syntax + privacy-boundary checks
+scripts/check.mjs         source syntax + privacy-boundary checks
+scripts/check-dist.mjs    production HTML + checksum verification
 build.mjs                 per-entry single-file production build
 ```
 
@@ -84,14 +86,15 @@ there is no second list to keep in sync.
 
 ## Develop and verify
 
-Requires Node 22. Direct dependencies are pinned to reviewed versions. The project uses `fflate` for local ZIP/OOXML batch work; it has no runtime dependencies of its own.
+Requires Node 22. Direct dependencies are pinned and `package-lock.json` is committed from a clean Node 22 install. Use `npm ci` when reproducing or verifying the checked-in dependency graph; use `npm install` only when intentionally changing dependencies. The project uses `fflate` for local ZIP/OOXML batch work; it has no runtime dependencies of its own.
 
 ```bash
-npm install
+npm ci
 npm run dev
 npm run check
 npm test
 npm run build
+npm run verify:dist
 npm run preview
 ```
 
@@ -100,11 +103,13 @@ npm run preview
 ```text
 dist/
   index.html
+  SHA256SUMS.txt
   tools/<tool>/index.html
 ```
 
 Every `tools/<tool>/index.html` is self-contained and can be distributed on its
-own.
+own. `SHA256SUMS.txt` lets a downloaded/rehosted standalone file be checked against
+the exact artefact produced by CI.
 
 ## Design principles
 
