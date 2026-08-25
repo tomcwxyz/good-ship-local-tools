@@ -14,7 +14,7 @@ launcher, or hand somebody one tool that opens directly in a modern browser.
 | Metadata stripper | Removes EXIF/XMP/IPTC/vendor metadata from JPEG and text/Exif/time metadata from PNG | Lossless. Keeps JPEG ICC colour profiles/Adobe markers; supports batches of up to 100 files with ZIP output. |
 | Office privacy inspector | Inspects/cleans personal and custom properties in DOCX/XLSX/PPTX and macro-enabled OOXML | Reports comments, tracked changes, notes, hidden sheets, macros, embedded files and external links separately; never silently removes them. |
 | PDF privacy inspector | Reports PDF Info/XMP metadata, attachments, forms, JavaScript and signatures | Metadata cleaning removes Info/XMP only; signed files require an explicit invalidation acknowledgement. |
-| Redaction | Blacks out regions of images and PDFs | Output is rasterised/flattened. PDF text, links, forms, annotations and hidden document data are not carried over. |
+| Redaction | Blacks out regions of images and PDFs with zoom, PDF page navigation and keyboard rectangle entry | Output is rasterised/flattened. Normalised boxes stay aligned across preview/export resolutions; PDF text, links, forms, annotations and hidden document data are not carried over. |
 | Image converter | SVG/PNG/JPEG/WebP conversion, resize and compression | Re-encodes pixels. Blocks SVGs that contain script or external web resources. |
 | PDF editor | Merge, drag-reorder, rotate, duplicate and remove pages | Page content is copied into a new PDF. PDF scripting/eval is disabled while previewing. |
 | File checksum | Calculates and compares SHA-256 fingerprints | Uses the browser Web Crypto API; no dependency. |
