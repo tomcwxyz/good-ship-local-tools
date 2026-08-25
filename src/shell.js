@@ -25,10 +25,12 @@ const anchor = () =>
 
 // Builds nav + a .gs-wrap content area + footer. Returns the content element.
 export function chrome(subtitle, { back = true } = {}) {
-  const nav = el('nav', { class: 'gs-nav', 'aria-label': 'Local tools' });
+  const nav = el('nav', { class: 'gs-nav', 'aria-label': 'Sets' });
   nav.innerHTML = anchor();
   nav.append(
     el('a', { href: '../../index.html' }, 'The Good Ship'),
+    el('span', { style: { opacity: .5 }, 'aria-hidden': 'true' }, '·'),
+    el('a', { href: '../../index.html' }, 'Sets'),
     el('span', { style: { opacity: .5 }, 'aria-hidden': 'true' }, '·'),
     el('span', { style: { opacity: .85 } }, subtitle),
   );
@@ -41,7 +43,7 @@ export function chrome(subtitle, { back = true } = {}) {
   }
   const content = el('div');
   const foot = el('footer', { class: 'gs-foot' });
-  foot.innerHTML = '<b>The Good Ship</b> <span>· tomcw.xyz · code Apache-2.0 · Good Ship identity reserved</span>';
+  foot.innerHTML = '<b>Sets</b> <span>· by The Good Ship · tomcw.xyz · code Apache-2.0 · Good Ship identity reserved</span>';
   wrap.append(content, foot);
   document.body.append(nav, wrap);
   return content;
