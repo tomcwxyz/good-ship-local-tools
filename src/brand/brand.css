@@ -1,0 +1,94 @@
+/* The Good Ship — shared brand kit. Inlined into every tool at build.
+   Deliberately no remote fonts: hosted and standalone builds make no font request. */
+:root{
+  --bg:#F5F0E8; --card:#FFFFFF; --card-alt:#F0EBE1;
+  --navy:#2D3E50; --navy-deep:#1E2D3D;
+  --text:#2D3E50; --body:#526474; --muted:#5B6D7D;
+  --green:#4F7E68; --green-dk:#3F6855; --gold:#8C6815; --gold-bg:#FBF4E1;
+  --soft-green:#DDEAE3; --teal:#4A8B8C; --border:#D9D0C3;
+  --fh:Georgia,'Times New Roman',serif;
+  --fb:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --fm:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono',monospace;
+  --r:8px; --rl:12px; --shadow:0 1px 3px rgba(0,0,0,.04);
+}
+*{box-sizing:border-box}
+html{color-scheme:light}
+body{margin:0;background:var(--bg);color:var(--body);font-family:var(--fb);line-height:1.65;}
+h1,h2,h3{font-family:var(--fh);color:var(--text);line-height:1.18;font-weight:400;}
+a{color:var(--green-dk);font-family:var(--fm);text-decoration:none;}
+a:hover{text-decoration:underline;}
+button,input,textarea,select{font:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+
+.gs-nav{background:var(--navy);color:var(--bg);font-family:var(--fm);font-size:.8rem;
+  padding:.75rem 1.25rem;display:flex;align-items:center;gap:.6rem;}
+.gs-nav a{color:var(--bg);}
+.gs-wrap{max-width:920px;margin:0 auto;padding:1.75rem 1.25rem;}
+.gs-label{font-family:var(--fm);font-size:.72rem;color:var(--green-dk);
+  text-transform:lowercase;letter-spacing:.08em;}
+.gs-mono{font-family:var(--fm);}
+.gs-muted{color:var(--muted);}
+.gs-lead{max-width:650px;}
+
+.gs-card{background:var(--card);border:1px solid var(--border);
+  border-left:3px solid var(--green);border-radius:var(--rl);
+  box-shadow:var(--shadow);padding:1.25rem;}
+
+.gs-assurance{display:flex;align-items:center;gap:.5rem;background:var(--card-alt);
+  border:1px solid var(--border);border-radius:var(--r);padding:.65rem .9rem;
+  font-size:.82rem;max-width:650px;color:var(--text);}
+.gs-assurance svg{color:var(--green-dk);flex-shrink:0;}
+
+.gs-btn{font-family:var(--fm);font-size:.84rem;border-radius:var(--r);cursor:pointer;
+  transition:background .15s,border-color .15s;border:none;padding:.62rem 1.05rem;display:inline-flex;
+  align-items:center;justify-content:center;gap:.45rem;min-height:40px;}
+.gs-btn-primary{background:var(--green-dk);color:#fff;}
+.gs-btn-primary:hover{background:var(--navy);text-decoration:none;}
+.gs-btn-primary:disabled{background:var(--muted);cursor:not-allowed;}
+.gs-btn-ghost{background:transparent;color:var(--green-dk);border:1px solid var(--border);}
+.gs-btn-ghost:hover{background:var(--card-alt);text-decoration:none;}
+
+.gs-pill{font-family:var(--fm);font-size:.62rem;letter-spacing:.06em;
+  text-transform:uppercase;border-radius:99px;padding:.15rem .55rem;}
+.gs-pill-live{background:var(--soft-green);color:var(--navy-deep);}
+.gs-pill-soon{background:var(--card-alt);color:var(--muted);border:1px solid var(--border);}
+
+.gs-drop{border:1px dashed var(--green-dk);border-radius:var(--rl);background:var(--card);
+  padding:2.5rem 1.5rem;text-align:center;cursor:pointer;transition:.15s;}
+.gs-drop:hover,.gs-drop.drag{background:var(--card-alt);border-color:var(--navy);}
+
+.gs-warn{background:var(--gold-bg);border:1px solid var(--gold);border-radius:var(--r);
+  padding:.78rem .9rem;display:flex;gap:.55rem;align-items:flex-start;font-size:.85rem;color:var(--text);}
+.gs-warn svg{color:var(--gold);flex-shrink:0;margin-top:2px;}
+
+.gs-foot{border-top:1px solid var(--border);margin-top:3rem;padding:1.25rem;text-align:center;}
+.gs-foot b{font-family:var(--fh);color:var(--green-dk);font-weight:400;font-size:1rem;}
+.gs-foot span{font-family:var(--fm);color:var(--muted);font-size:.75rem;}
+
+.gs-icon-circle{width:40px;height:40px;border-radius:99px;background:var(--card-alt);
+  display:flex;align-items:center;justify-content:center;color:var(--green-dk);flex-shrink:0;}
+
+input[type=text],input[type=search],input[type=number],input[type=color],textarea,select{font-family:var(--fm);font-size:.85rem;
+  border:1px solid var(--border);border-radius:var(--r);padding:.52rem .62rem;
+  background:var(--card);color:var(--text);}
+input[type=number]{max-width:110px}
+textarea{width:100%;line-height:1.5;resize:vertical;}
+input[type=checkbox]{width:1rem;height:1rem;accent-color:var(--green-dk)}
+table{border-collapse:collapse;font-size:.8rem;}
+th,td{border:1px solid var(--border);padding:.35rem .5rem;text-align:left;vertical-align:top;}
+th{background:var(--card-alt);font-family:var(--fm);font-weight:600;}
+
+.gs-visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;
+overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;}
+.gs-two-col{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
+.gs-toolbar{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;}
+
+@media (max-width:680px){
+  .gs-wrap{padding:1.25rem .9rem}
+  .gs-two-col{grid-template-columns:1fr}
+  .gs-drop{padding:2rem 1rem}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *{scroll-behavior:auto!important;transition:none!important;animation:none!important}
+}

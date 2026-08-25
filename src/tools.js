@@ -1,0 +1,21 @@
+// Single source of truth for the launcher and production build entries.
+export const TOOLS = [
+  { id:'metadata', name:'Metadata stripper', category:'privacy',
+    blurb:'Remove EXIF, GPS location and author data from images before you share them. JPEG & PNG stripped losslessly.', keywords:'exif gps privacy jpeg png author metadata' },
+  { id:'redact', name:'Redaction', category:'privacy',
+    blurb:'Flatten redactions into images and PDFs so the pixels underneath are not retained.', keywords:'redact pdf image privacy black out flatten sensitive' },
+  { id:'image', name:'Image converter', category:'files',
+    blurb:'Convert SVG, PNG, JPEG and WebP, resize with aspect lock, and compress.', keywords:'image photo resize compress convert svg png jpeg webp' },
+  { id:'pdf', name:'PDF editor', category:'files',
+    blurb:'Merge, reorder, rotate, duplicate and remove PDF pages. Add several files to combine them.', keywords:'pdf merge reorder rotate delete duplicate pages' },
+  { id:'hash', name:'File checksum', category:'files',
+    blurb:'Calculate SHA-256 fingerprints and compare files with a checksum you have been given.', keywords:'sha sha256 checksum hash fingerprint verify file' },
+  { id:'csv', name:'CSV cleaner', category:'data',
+    blurb:'Trim, remove empty rows or columns, deduplicate, handle common encodings and convert to JSON.', keywords:'csv excel encoding utf8 dedupe clean data json' },
+  { id:'convert', name:'Data converter', category:'data',
+    blurb:'Convert, prettify and validate between JSON, CSV and YAML without silently changing CSV IDs.', keywords:'json csv yaml convert validate prettify data' },
+  { id:'diff', name:'Text diff', category:'text',
+    blurb:'Compare two blocks of text by line, word or character, with additions and removals highlighted.', keywords:'text diff compare line word character changes' },
+  { id:'contrast', name:'Accessibility colour checker', category:'accessibility',
+    blurb:'Check WCAG text and UI contrast, audit palettes, inspect focus colours and preview colour-vision deficiencies.', keywords:'wcag accessibility contrast colour color palette focus aa aaa vision' },
+];
