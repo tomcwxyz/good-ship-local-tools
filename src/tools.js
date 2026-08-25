@@ -9,7 +9,7 @@ export const TOOLS = [
   { id:'redact', name:'Redaction', category:'privacy',
     blurb:'Flatten redactions into images and PDFs so the pixels underneath are not retained.', keywords:'redact pdf image privacy black out flatten sensitive' },
   { id:'image', name:'Image converter', category:'files',
-    blurb:'Convert SVG, PNG, JPEG and WebP, resize with aspect lock, and compress.', keywords:'image photo resize compress convert svg png jpeg webp' },
+    blurb:'Convert SVG, PNG, JPEG and WebP, resize/compress one image or apply one policy to a local batch.', keywords:'image photo batch resize compress convert svg png jpeg webp zip' },
   { id:'pdf', name:'PDF editor', category:'files',
     blurb:'Merge, reorder, rotate, duplicate and remove PDF pages. Add several files to combine them.', keywords:'pdf merge reorder rotate delete duplicate pages' },
   { id:'hash', name:'File checksum', category:'files',
