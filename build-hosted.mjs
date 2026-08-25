@@ -11,6 +11,7 @@ const inputs = {
 rmSync('dist-hosted', { recursive:true, force:true });
 
 await build({
+  configFile: false,
   base: './',
   logLevel: 'warn',
   build: {
