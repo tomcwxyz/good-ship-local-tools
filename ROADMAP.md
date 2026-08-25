@@ -57,12 +57,19 @@ The metadata stripper now supports multi-file mode (up to 100 files) with ZIP ou
 
 ## Strong next extensions
 
-### 1. Better redaction workflow
+### 1. Better redaction workflow — core workflow implemented in 0.5
 
-Zoom/pan, page thumbnails, keyboard-friendly rectangle selection and output
-quality controls. Text-search-assisted redaction could be useful, but should
-only suggest locations: automatic redaction can miss text because PDF text
-extraction and visual layout are not equivalent.
+0.5 adds zoom/scroll panning, PDF page thumbnails/navigation, keyboard-entered
+percentage rectangles, per-page/total counts, independent export DPI/encoding,
+and a one-page-at-a-time render model. Redaction rectangles are stored as
+normalised page coordinates so changing preview/export resolution cannot move
+them.
+
+Still useful: text-search-assisted redaction, but it should only **suggest**
+locations. Automatic redaction can miss text because PDF text extraction and
+visual layout are not equivalent. A future version could also add a stronger
+post-export verification view that reopens the generated file locally for a
+final visual check.
 
 ### 2. CSV operations that match real admin work
 
