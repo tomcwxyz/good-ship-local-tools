@@ -48,4 +48,10 @@ npm run verify:dist
 
 Use `npm install` instead of `npm ci` only when intentionally changing dependencies, and commit the resulting lockfile. For changes to security-sensitive or lossless transformations, add or update tests. For UI changes, open the generated standalone HTML, exercise keyboard navigation, and test the primary workflow with representative files.
 
-Before a release, smoke-test at least Chromium plus one other browser engine where practical.
+Pull requests also run the standalone browser smoke job. It builds the production HTML and opens every entry directly under `file://` in Chromium, Firefox and WebKit; console/page/network failures fail the job. Keep the smoke harness separate from application dependencies.
+
+## Releases
+
+Release tags use the form `v<package-version>` (for example `v0.9.0`). The tag-driven workflow refuses to publish if the tag and `package.json` version differ, and repeats the full source/test/build/production/browser verification before creating a GitHub Release.
+
+Do not weaken or bypass the release gates to publish a broken tag. Fix the release commit, update the version if necessary, and create a new tag.
