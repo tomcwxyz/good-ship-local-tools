@@ -5,6 +5,7 @@ import { chromium, firefox, webkit } from 'playwright';
 
 const distDir = path.resolve(process.argv[2] || 'dist');
 const expectedHtmlFiles = 16; // launcher + 15 tools in v0.10
+const smokePdf = Buffer.from('JVBERi0xLjMKJeLjz9MKMSAwIG9iago8PAovUHJvZHVjZXIgKHB5cGRmKQovVGl0bGUgKFNtb2tlIFBERikKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAxCi9LaWRzIFsgNCAwIFIgXQo+PgplbmRvYmoKMyAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFIKPj4KZW5kb2JqCjQgMCBvYmoKPDwKL1R5cGUgL1BhZ2UKL1Jlc291cmNlcyA8PAo+PgovTWVkaWFCb3ggWyAwLjAgMC4wIDMwMCA0MDAgXQovUGFyZW50IDIgMCBSCj4+CmVuZG9iagp4cmVmCjAgNQowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMTUgMDAwMDAgbiAKMDAwMDAwMDA3MyAwMDAwMCBuIAowMDAwMDAwMTMyIDAwMDAwIG4gCjAwMDAwMDAxODEgMDAwMDAgbiAKdHJhaWxlcgo8PAovU2l6ZSA1Ci9Sb290IDMgMCBSCi9JbmZvIDEgMCBSCj4+CnN0YXJ0eHJlZgoyNzUKJSVFT0YK', 'base64');
 
 async function findHtml(dir) {
   const entries = await readdir(dir, { withFileTypes:true });
@@ -84,6 +85,36 @@ async function smokePage(browser, browserName, file) {
         const text = document.body?.innerText || '';
         return text.includes('column actions') && text.includes('Download transformed data');
       }, `${browserName} pseudonymiser fixture`);
+    }
+
+    if (relative === 'tools/preflight/index.html') {
+      await page.locator('input[type="file"]').setInputFiles({ name:'publish.txt', mimeType:'text/plain', buffer:Buffer.from('Contact ada@example.org before publishing.\n') });
+      await waitForBody(page, () => {
+        const text = document.body?.innerText || '';
+        return text.includes('publish.txt') && text.toLowerCase().includes('possible email address match');
+      }, `${browserName} publication preflight fixture`);
+    }
+
+    if (relative === 'tools/pdf/index.html') {
+      await page.locator('input[type="file"]').setInputFiles({ name:'smoke.pdf', mimeType:'application/pdf', buffer:smokePdf });
+      await waitForBody(page, () => {
+        const text = document.body?.innerText || '';
+        return text.includes('1 page in output') && text.includes('Export PDF');
+      }, `${browserName} PDF workbench fixture`, 15_000);
+    }
+
+    if (relative === 'tools/pdf-sanitise/index.html') {
+      await page.locator('input[type="file"]').setInputFiles({ name:'smoke.pdf', mimeType:'application/pdf', buffer:smokePdf });
+      await waitForBody(page, () => {
+        const text = document.body?.innerText || '';
+        return text.includes('Create structural clean copy') && text.includes('1 page');
+      }, `${browserName} PDF sanitiser inspection`, 15_000);
+      await page.locator('#sanitize-ack').check();
+      const downloadPromise = page.waitForEvent('download', { timeout:15_000 });
+      await page.getByRole('button', { name:'Create structural clean copy' }).click();
+      const cleanDownload = await downloadPromise;
+      if (cleanDownload.suggestedFilename() !== 'smoke-structural-clean.pdf') failures.push(`unexpected sanitiser download name: ${cleanDownload.suggestedFilename()}`);
+      if (await cleanDownload.failure()) failures.push(`PDF sanitiser download failed: ${await cleanDownload.failure()}`);
     }
 
     if (networkRequests.length) failures.push(`network request(s): ${[...new Set(networkRequests)].join(', ')}`);
