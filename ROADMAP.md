@@ -51,9 +51,9 @@ Show title, author, creator, producer, dates, attachments, forms and JavaScript
 before cleaning. This is a better fit than quietly folding it into the PDF
 editor because inspection is part of the trust model.
 
-### Batch image clean + convert — partly implemented
+### Batch image clean + convert — implemented
 
-The metadata stripper now supports multi-file mode (up to 100 files) with ZIP output using `fflate`. Batch conversion remains a useful follow-on for the image converter, where a shared resize/format policy should be applied consistently to every file.
+The metadata stripper supports multi-file mode (up to 100 files) with ZIP output using `fflate`. 0.6 extends the image converter with a shared format/maximum-edge/upscaling/quality policy, sequential processing, per-file failures and bounded ZIP output while keeping the precise single-image controls.
 
 ## Strong next extensions
 
