@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.6.0 — in progress
+
+- add multi-file image conversion while preserving the existing precise single-image workflow;
+- apply one batch policy for format, maximum long edge, upscaling and quality while preserving each image's aspect ratio;
+- process batch images sequentially and download converted results as a collision-safe ZIP;
+- validate SVG safety before decoding in both single and batch paths;
+- add 80 MB per-file plus 300 MB combined input and converted-output guardrails;
+- flatten transparency onto white for JPEG output and report unsupported browser formats per file;
+- add tested batch sizing and explicit image format/MIME helpers.
+
 ## 0.5.0 — in progress
 
 - move PDF redaction to a one-page-at-a-time preview model to avoid retaining every full-resolution page canvas;
