@@ -1,6 +1,6 @@
-# Local Tools — product direction
+# Sets — product direction
 
-The useful niche here is not “another collection of web utilities”. It is a
+The useful niche here is not “another collection of web utilities”. Sets is a
 small, trustworthy alternative to the sites people reach for when they have a
 sensitive file, awkward dataset or one-off document job.
 
@@ -15,7 +15,7 @@ sensitive file, awkward dataset or one-off document job.
 
 ## Implemented foundation — 0.2 to 0.9
 
-The collection now has a sealed local-only build model, CSP/network checks, standalone HTML artefacts, reproducible Node 22 installs, release checksums, Chromium/Firefox/WebKit direct-file smoke tests and a tag-gated release workflow.
+Sets now has a sealed local-only build model, CSP/network checks, standalone HTML artefacts, reproducible Node 22 installs, release checksums, Chromium/Firefox/WebKit direct-file smoke tests and a tag-gated release workflow.
 
 Product work already covers image metadata cleaning/batch conversion, Office and PDF privacy inspection/reports, raster redaction, CSV/TSV cleaning, data conversion, checksums, accessibility colour checks, and a page-organising PDF editor.
 
@@ -75,7 +75,7 @@ Do not turn the tool into a spreadsheet.
 
 ### Installable launcher
 
-A PWA/service-worker layer could cache the hosted collection offline, but the single-file standalone artefact remains the primary portability contract.
+A PWA/service-worker layer could cache the hosted Sets collection offline, but the single-file standalone artefact remains the primary portability contract.
 
 ### Richer publication queues
 
@@ -88,16 +88,16 @@ Generic calculators, URL encoders, lorem ipsum, timers and similar utilities wou
 - people currently upload a potentially sensitive file to do it;
 - it is surprisingly hard to do safely with built-in software;
 - local execution materially improves privacy or organisational confidence;
-- it composes naturally with another tool in this collection.
+- it composes naturally with another tool in Sets.
 
 ## 1.0 definition
 
-After 0.10, **stop feature expansion** and prove the collection in use. 1.0 should mean:
+After 0.10, **stop feature expansion** and prove Sets in use. 1.0 should mean:
 
 1. the complete 0.10 standalone set passes source checks, unit tests, production verification and Chromium/Firefox/WebKit direct-file smoke tests;
 2. a tagged release has been built through the release workflow and downloadable artefacts/checksums have been tested on real desktop and mobile devices;
 3. the launcher is hosted somewhere easy to reach without weakening the local-only trust model;
-4. a small group has used the collection for real document/data work and any serious correctness/usability failures have been fixed;
+4. a small group has used Sets for real document/data work and any serious correctness/usability failures have been fixed;
 5. documentation clearly separates metadata cleaning, structural PDF sanitation and raster redaction so users can choose the right disclosure boundary.
 
 The next work after that should come from observed use, not from trying to reach a larger tool count.
