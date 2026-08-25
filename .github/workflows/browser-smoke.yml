@@ -38,3 +38,9 @@ jobs:
           npx playwright install --with-deps chromium firefox webkit
           cp "$GITHUB_WORKSPACE/scripts/browser-smoke.mjs" .
           node browser-smoke.mjs "$GITHUB_WORKSPACE/dist"
+      - name: Dry-run release packaging
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "JSON.parse(require('fs').readFileSync('package.json','utf8')).version")"
+          bash scripts/package-release.sh "$VERSION" "$RUNNER_TEMP/release-dry-run"
