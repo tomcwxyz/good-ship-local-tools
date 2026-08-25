@@ -117,9 +117,24 @@ these properties:
 
 ## Release approach
 
-The public repository is now the canonical source and clean GitHub Actions builds are the release gate. 0.8 adds a Node 22 lockfile, `npm ci`, production-HTML verification and per-artefact SHA-256 checksums. Before the first tagged release:
+0.8 made builds reproducible and verifies the built standalone files. 0.9 closes
+the remaining release-readiness gaps:
 
-1. settle the code/content licence split;
-2. smoke-test generated standalone HTML in Chromium and at least one WebKit/Firefox browser;
-3. attach the verified `dist/` ZIP (including `SHA256SUMS.txt`) to tagged releases;
-4. keep GitHub Actions intentionally small: install → source check → test → build → production verification, with release publication only on tags.
+- Apache-2.0 is the repository licence, while Good Ship brand identifiers remain
+  outside the licence grant via `NOTICE`;
+- every built HTML file is opened directly from disk in Chromium, Firefox and
+  WebKit, with file-input smoke paths for checksum and CSV/TSV;
+- tags matching `v<package-version>` run the complete check/test/build/production
+  verification/browser-smoke gate before a GitHub Release is created;
+- releases contain a versioned ZIP, renamed individual standalone HTML assets,
+  licence/notice files and release-level SHA-256 checksums.
+
+After 0.9, the next milestone should be **use rather than feature count**:
+
+1. publish/host the launcher somewhere easy to reach;
+2. tag a release candidate and test the downloadable artefacts on real desktop
+   and mobile devices;
+3. put the collection in front of a small group doing real document/data work;
+4. prioritise 1.0/1.1 from observed workflows, with publication-review queues,
+   search-assisted redaction and the remaining CSV admin operations the strongest
+   current candidates.
