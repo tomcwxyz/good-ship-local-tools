@@ -53,7 +53,7 @@ async function smokePage(browser, browserName, file) {
 
     const relative = rel(file);
     if (relative === 'tools/hash/index.html') {
-      await page.locator('input[type="file"]').setInputFiles({ name:'smoke.txt', mimeType:'text/plain', buffer:Buffer.from('good ship local tools browser smoke test\n') });
+      await page.locator('input[type="file"]').setInputFiles({ name:'smoke.txt', mimeType:'text/plain', buffer:Buffer.from('sets browser smoke test\n') });
       await waitForBody(page, () => {
         const text = document.body?.innerText || '';
         return text.includes('1 file hashed') && /\b[0-9a-f]{64}\b/i.test(text);
@@ -111,11 +111,17 @@ async function smokePage(browser, browserName, file) {
       }, `${browserName} PDF sanitiser inspection`, 15_000);
 
       await page.evaluate(() => {
-        window.__gsSmokeDownload = null;
+        window.__setsSmokeDownload = null;
+        window.__setsSmokeBlob = null;
         const originalClick = HTMLAnchorElement.prototype.click;
+        const originalCreateObjectURL = URL.createObjectURL.bind(URL);
+        URL.createObjectURL = function smokeCaptureBlob(blob) {
+          window.__setsSmokeBlob = blob;
+          return originalCreateObjectURL(blob);
+        };
         HTMLAnchorElement.prototype.click = function smokeCaptureClick() {
           if (this.download) {
-            window.__gsSmokeDownload = { filename:this.download, href:this.href };
+            window.__setsSmokeDownload = { filename:this.download };
             return;
           }
           return originalClick.call(this);
@@ -123,12 +129,12 @@ async function smokePage(browser, browserName, file) {
       });
       await page.locator('#sanitize-ack').check();
       await page.getByRole('button', { name:'Create structural clean copy' }).click();
-      await page.waitForFunction(() => window.__gsSmokeDownload || (document.body?.innerText || '').includes('Could not rebuild this PDF'), null, { timeout:15_000 });
+      await page.waitForFunction(() => (window.__setsSmokeDownload && window.__setsSmokeBlob) || (document.body?.innerText || '').includes('Could not rebuild this PDF'), null, { timeout:15_000 });
       const generated = await page.evaluate(async () => {
-        const record = window.__gsSmokeDownload;
-        if (!record) return null;
-        const response = await fetch(record.href);
-        const bytes = new Uint8Array(await response.arrayBuffer());
+        const record = window.__setsSmokeDownload;
+        const blob = window.__setsSmokeBlob;
+        if (!record || !blob) return null;
+        const bytes = new Uint8Array(await blob.arrayBuffer());
         return {
           filename:record.filename,
           size:bytes.length,
