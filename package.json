@@ -3,7 +3,7 @@
   "version": "0.10.0",
   "private": true,
   "type": "module",
-  "description": "Small local-first tools. Nothing leaves your browser.",
+  "description": "Sets — small, private tools for repeatable work. Nothing leaves your browser.",
   "license": "Apache-2.0",
   "scripts": {
     "dev": "vite",
