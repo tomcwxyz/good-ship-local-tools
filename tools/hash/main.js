@@ -1,4 +1,5 @@
 import { chrome, header, assurance, el, fmtBytes, copyText } from '../../src/shell.js';
+import { sha256Hex } from '../../src/lib/digest.js';
 
 const root = chrome('file checksum');
 root.append(
@@ -37,7 +38,7 @@ async function addFiles(files) {
     status.style.color = 'var(--muted)';
     status.textContent = `Hashing ${file.name}…`;
     try {
-      const hash = await sha256(file);
+      const hash = await sha256Hex(await file.arrayBuffer());
       hashes.push({ file, hash });
       results.append(resultCard(file, hash));
     } catch (err) {
@@ -46,13 +47,6 @@ async function addFiles(files) {
   }
   status.textContent = hashes.length ? `${hashes.length} file${hashes.length === 1 ? '' : 's'} hashed` : '';
   checkExpected();
-}
-
-async function sha256(file) {
-  // SubtleCrypto is deliberately used instead of a dependency. It is not streaming,
-  // so a file is held in memory briefly while its digest is calculated.
-  const digest = await globalThis.crypto.subtle.digest('SHA-256', await file.arrayBuffer());
-  return [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 function resultCard(file, hash) {

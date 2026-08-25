@@ -98,9 +98,11 @@ artefact; PWA support should be additive.
 
 The PDF privacy inspector now reports attachments, form fields, JavaScript and signatures, but metadata cleaning deliberately leaves them untouched. A later advanced mode could remove attachments and document/page JavaScript with a before/after report. It should remain separate from metadata cleaning because structural PDF sanitation can break forms, signatures and interactive documents.
 
-### 5. Office review workflow
+### 5. Office/PDF review workflow
 
-Add optional export of an inspection report (JSON/CSV) for teams reviewing many files before publication, and consider a deliberately separate “remove comments/accept tracked changes” workflow only if it can be made predictable across Word/Excel/PowerPoint.
+JSON inspection reports are implemented in 0.7 for both Office and PDF files. The default report omits the source filename and metadata values, identifies the source with SHA-256 when available, and records findings plus selected/completed cleaning actions.
+
+Useful follow-ons are multi-file report aggregation/CSV export for publication-review queues, and a deliberately separate “remove comments/accept tracked changes” workflow only if it can be made predictable across Word/Excel/PowerPoint.
 
 ## Things not to add just because they are easy
 

@@ -12,8 +12,8 @@ launcher, or hand somebody one tool that opens directly in a modern browser.
 | Tool | What it does | Important behaviour |
 |------|--------------|--------------------|
 | Metadata stripper | Removes EXIF/XMP/IPTC/vendor metadata from JPEG and text/Exif/time metadata from PNG | Lossless. Keeps JPEG ICC colour profiles/Adobe markers; supports batches of up to 100 files with ZIP output. |
-| Office privacy inspector | Inspects/cleans personal and custom properties in DOCX/XLSX/PPTX and macro-enabled OOXML | Reports comments, tracked changes, notes, hidden sheets, macros, embedded files and external links separately; never silently removes them. |
-| PDF privacy inspector | Reports PDF Info/XMP metadata, attachments, forms, JavaScript and signatures | Metadata cleaning removes Info/XMP only; signed files require an explicit invalidation acknowledgement. |
+| Office privacy inspector | Inspects/cleans personal and custom properties in DOCX/XLSX/PPTX and macro-enabled OOXML | Reports risky document features separately and exports low-disclosure JSON inspection reports; never silently removes comments or tracked changes. |
+| PDF privacy inspector | Reports PDF Info/XMP metadata, attachments, forms, JavaScript and signatures | Metadata cleaning removes Info/XMP only; can export a SHA-256-linked summary report without source filename or metadata values. |
 | Redaction | Blacks out regions of images and PDFs with zoom, PDF page navigation and keyboard rectangle entry | Output is rasterised/flattened. Normalised boxes stay aligned across preview/export resolutions; PDF text, links, forms, annotations and hidden document data are not carried over. |
 | Image converter | SVG/PNG/JPEG/WebP conversion, resize and compression for one image or a batch | Re-encodes pixels. Batch mode applies one aspect-preserving resize policy, uses bounded sequential processing and blocks unsafe SVGs. |
 | PDF editor | Merge, drag-reorder, rotate, duplicate and remove pages | Page content is copied into a new PDF. PDF scripting/eval is disabled while previewing. |
@@ -33,6 +33,7 @@ The collection is deliberately stricter than “we promise not to upload it”:
 - PDF.js scripting and eval are explicitly disabled when opening PDFs;
 - `npm run check` enforces the no-network-source rule and CSP coverage in CI;
 - critical transforms and privacy boundaries have automated tests, including OOXML package cleaning and PDF metadata removal.
+- summary inspection reports omit source filenames and metadata values by default, using a SHA-256 fingerprint when available.
 
 This does **not** mean every operation is lossless. Tools that rasterise or
 re-encode say so in the interface. A hosted copy is also only as trustworthy as
