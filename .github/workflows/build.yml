@@ -3,6 +3,8 @@ on:
   push:
     branches: [ main ]
   pull_request:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -12,6 +14,15 @@ jobs:
         with:
           node-version: 22
       - run: npm install
+      - name: Commit generated lockfile to PR branch
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method PUT "repos/${{ github.repository }}/contents/package-lock.json" \
+            -f message='Commit clean Node 22 lockfile' \
+            -f content="$(base64 -w0 package-lock.json)" \
+            -f branch="${{ github.head_ref }}"
       - run: npm run check
       - run: npm test
       - run: npm run build
@@ -20,7 +31,3 @@ jobs:
         with:
           name: local-tools-dist
           path: dist
-      - uses: actions/upload-artifact@v4
-        with:
-          name: dependency-lock
-          path: package-lock.json
