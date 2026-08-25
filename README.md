@@ -18,7 +18,7 @@ launcher, or hand somebody one tool that opens directly in a modern browser.
 | Image converter | SVG/PNG/JPEG/WebP conversion, resize and compression | Re-encodes pixels. Blocks SVGs that contain script or external web resources. |
 | PDF editor | Merge, drag-reorder, rotate, duplicate and remove pages | Page content is copied into a new PDF. PDF scripting/eval is disabled while previewing. |
 | File checksum | Calculates and compares SHA-256 fingerprints | Uses the browser Web Crypto API; no dependency. |
-| CSV cleaner | Trim cells/headers, remove empty rows/columns, dedupe, CSV→JSON | Auto-detects UTF-8 / common Windows CSV text; output is UTF-8. |
+| CSV/TSV cleaner | Trim cells/headers, remove empty rows/columns, dedupe by chosen keys, scoped find/replace, CSV/TSV→JSON | Auto-detects common encodings and comma/tab/semicolon/pipe delimiters; output is UTF-8 and preserves the chosen delimiter. |
 | Accessibility colour checker | WCAG 2.x text/UI contrast, palette audit, focus colours and colour-vision previews | Context-aware text thresholds, contrast suggestions and clear limits on what the tool can establish. |
 | Text diff | Line, word or character comparison | Fully local text comparison. |
 | Data converter | JSON ⇄ CSV ⇄ YAML, validate and prettify | CSV values stay as text by default so IDs such as `00123` are not silently changed. |
