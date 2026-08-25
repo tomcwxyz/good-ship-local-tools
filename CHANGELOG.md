@@ -1,6 +1,16 @@
 # Changelog
 
-## 0.6.0 — in progress
+## 0.7.0 — in progress
+
+- add local JSON inspection reports to the Office and PDF privacy inspectors;
+- make reports summary-only by default, omitting source filenames and metadata values;
+- identify inspected source files with a local SHA-256 fingerprint when Web Crypto is available;
+- add explicit opt-ins for including the original filename or metadata values in a report;
+- record structural findings, selected cleaning options and completed cleaning actions;
+- avoid exposing Office custom-property names in the default summary report;
+- move SHA-256 calculation into a reusable tested helper shared with the checksum tool.
+
+## 0.6.0
 
 - add multi-file image conversion while preserving the existing precise single-image workflow;
 - apply one batch policy for format, maximum long edge, upscaling and quality while preserving each image's aspect ratio;
@@ -10,7 +20,7 @@
 - flatten transparency onto white for JPEG output and report unsupported browser formats per file;
 - add tested batch sizing and explicit image format/MIME helpers.
 
-## 0.5.0 — in progress
+## 0.5.0
 
 - move PDF redaction to a one-page-at-a-time preview model to avoid retaining every full-resolution page canvas;
 - store redaction rectangles as normalised page coordinates so preview zoom and export DPI cannot shift them;
