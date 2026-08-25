@@ -43,9 +43,10 @@ done
   sha256sum -c RELEASE-SHA256SUMS.txt
 )
 
+EXPECTED_HTML_COUNT="$(find dist -type f -name 'index.html' | wc -l | tr -d ' ')"
 HTML_COUNT="$(find "$ASSET_DIR" -maxdepth 1 -type f -name '*.html' | wc -l | tr -d ' ')"
-if [ "$HTML_COUNT" != '12' ]; then
-  echo "Expected 12 standalone HTML release assets; found $HTML_COUNT." >&2
+if [ "$HTML_COUNT" != "$EXPECTED_HTML_COUNT" ]; then
+  echo "Expected $EXPECTED_HTML_COUNT standalone HTML release assets from the verified dist; found $HTML_COUNT." >&2
   exit 1
 fi
 
