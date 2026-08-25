@@ -2,16 +2,18 @@
 
 ## 0.10.0 — in progress
 
+- rename the product to **Sets**, with the line “Small, private tools for repeatable work”, a short Rotterdam-wave origin story, Sets-branded launcher/tool chrome and Sets release artefact names;
 - turn the PDF page organiser into a local PDF workbench with page selection/ranges, extraction, blank pages, JPEG/PNG pages, page numbering, diagonal watermarks, crop-box controls, optional form flattening and explicit output metadata handling;
 - inspect PDF source forms, JavaScript actions, annotations and digital signatures while building a pack, and require acknowledgement before exporting signed sources;
 - add a separate PDF sanitiser that structurally rebuilds visible pages into a fresh document without carrying the original document catalog, annotations/links, forms, attachments, JavaScript, metadata or signatures;
+- handle valid blank PDF pages with no `/Contents` stream during structural rebuilds while still surfacing other embed failures;
 - add a CSV/TSV data pseudonymiser with stable per-column pseudonyms, masking, salted SHA-256 fingerprints, column removal and an explicitly separate reversible mapping export;
 - add a cautious possible personal-data finder for common high-confidence patterns including email, UK phone/postcode/NI, IPv4, URLs, date-like values and Luhn-valid card-like numbers;
 - add publication preflight for mixed PDF, Office, image and text-like batches, linking flagged files back to the appropriate local cleaner/inspector;
 - extend text diff so TXT/Markdown, DOCX and PDF text can be extracted locally on either side before comparison;
 - add tests for personal-data matching, pseudonymisation, PDF workbench geometry and structural PDF rebuilding;
-- extend cross-browser smoke coverage to the new standalone tools and real personal-data/pseudonymiser file paths;
-- correct the shared footer so it reflects the Apache-2.0 code licence and separate Good Ship brand boundary.
+- extend cross-browser smoke coverage to the new standalone tools and real personal-data/pseudonymiser/PDF sanitiser paths;
+- correct the shared footer so it reflects the Apache-2.0 code licence and separate Good Ship / Sets brand boundary.
 
 ## 0.9.0
 
