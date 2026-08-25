@@ -1,6 +1,18 @@
 # Changelog
 
-## 0.4.0 — in progress
+## 0.5.0 — in progress
+
+- move PDF redaction to a one-page-at-a-time preview model to avoid retaining every full-resolution page canvas;
+- store redaction rectangles as normalised page coordinates so preview zoom and export DPI cannot shift them;
+- add PDF page thumbnails, previous/next navigation, active-page state and per-page/total redaction counts;
+- add fit/125/150/200% preview zoom with scrollable panning;
+- add keyboard-only percentage rectangle entry and Ctrl/Cmd+Z page undo;
+- add independent PDF export resolution (96/120/160 dpi) and JPEG/PNG page encoding choices;
+- add PNG/JPEG output choices for image redaction, with JPEG flattened onto white;
+- export PDF pages sequentially so high-resolution output does not require all rendered pages in memory at once;
+- add tested normalised redaction geometry helpers.
+
+## 0.4.0
 
 - extend the CSV cleaner to CSV and TSV with comma/tab/semicolon/pipe delimiter detection and explicit overrides;
 - preserve the selected/detected delimiter when downloading cleaned data;
