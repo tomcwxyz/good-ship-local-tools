@@ -21,3 +21,9 @@ jobs:
         with:
           name: local-tools-dist
           path: dist
+      - run: npm run build:hosted
+      - run: npm run verify:hosted
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sets-hosted-dist
+          path: dist-hosted

@@ -11,6 +11,8 @@
     "test": "node --test",
     "build": "node build.mjs",
     "verify:dist": "node scripts/check-dist.mjs",
+    "build:hosted": "node build-hosted.mjs",
+    "verify:hosted": "node scripts/check-hosted.mjs",
     "preview": "vite preview"
   },
   "devDependencies": {
