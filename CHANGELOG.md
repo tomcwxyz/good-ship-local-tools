@@ -1,6 +1,17 @@
 # Changelog
 
-## 0.3.0 — in progress
+## 0.4.0 — in progress
+
+- extend the CSV cleaner to CSV and TSV with comma/tab/semicolon/pipe delimiter detection and explicit overrides;
+- preserve the selected/detected delimiter when downloading cleaned data;
+- deduplicate rows using explicitly chosen key columns;
+- add literal find/replace restricted to explicitly selected columns, with case-sensitive and whole-cell modes;
+- show live replacement and duplicate-removal counts;
+- preserve blank source rows until the cleaning option explicitly removes them;
+- reject CSV/TSV inputs over 100 MB rather than risking browser memory exhaustion;
+- move CSV transforms into a reusable pure library with focused tests.
+
+## 0.3.0
 
 - add Office privacy inspector for DOCX/XLSX/PPTX and macro-enabled OOXML;
 - inspect author/editor/company/custom properties separately from comments, tracked changes, notes, hidden sheets, macros, embedded files and external links;
