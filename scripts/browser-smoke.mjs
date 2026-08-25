@@ -28,6 +28,15 @@ function isNetworkUrl(value) {
   }
 }
 
+async function waitForBody(page, predicate, description, timeout = 10_000) {
+  try {
+    await page.waitForFunction(predicate, null, { timeout });
+  } catch (error) {
+    const body = (await page.locator('body').innerText()).replace(/\s+/g, ' ').trim();
+    throw new Error(`${description} did not become ready. Body: ${body.slice(0, 1200)}`, { cause: error });
+  }
+}
+
 async function smokePage(browser, browserName, file) {
   const page = await browser.newPage();
   const failures = [];
@@ -64,10 +73,10 @@ async function smokePage(browser, browserName, file) {
         mimeType: 'text/plain',
         buffer: Buffer.from('good ship local tools browser smoke test\n'),
       });
-      await page.waitForFunction(() => {
+      await waitForBody(page, () => {
         const text = document.body?.innerText || '';
         return text.includes('1 file hashed') && /\b[0-9a-f]{64}\b/i.test(text);
-      }, null, { timeout: 10_000 });
+      }, `${browserName} checksum fixture`);
     }
 
     if (relative === 'tools/csv/index.html') {
@@ -76,10 +85,19 @@ async function smokePage(browser, browserName, file) {
         mimeType: 'text/tab-separated-values',
         buffer: Buffer.from('Name\tEmail\nAda\tada@example.org\nGrace\tgrace@example.org\n'),
       });
-      await page.waitForFunction(() => {
-        const text = document.body?.innerText || '';
-        return text.includes('Download clean file') && text.toLowerCase().includes('tab delimited');
-      }, null, { timeout: 10_000 });
+      await waitForBody(page, () => (document.body?.innerText || '').includes('Download clean file'), `${browserName} CSV/TSV editor`);
+
+      const csvState = await page.evaluate(() => ({
+        text: document.body?.innerText || '',
+        cells: [...document.querySelectorAll('tbody td')].map(node => node.textContent?.trim() || ''),
+        selectValues: [...document.querySelectorAll('select')].map(node => node.value),
+      }));
+      for (const expected of ['Ada', 'ada@example.org', 'Grace', 'grace@example.org']) {
+        if (!csvState.cells.includes(expected)) failures.push(`TSV fixture cell missing: ${expected}`);
+      }
+      if (!csvState.text.toLowerCase().includes('tab delimited')) {
+        failures.push(`TSV auto-detection did not report tab delimiter (select values: ${JSON.stringify(csvState.selectValues)})`);
+      }
     }
 
     if (networkRequests.length) failures.push(`network request(s): ${[...new Set(networkRequests)].join(', ')}`);
