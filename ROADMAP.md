@@ -33,9 +33,9 @@ sensitive file, awkward dataset or one-off document job.
 - manifest-driven launcher/build and dependency-free tests;
 - PDF scripting/eval disabled explicitly; direct dependencies pinned to the current reviewed majors (Vite 8, PDF.js 6, js-yaml 5, jsdiff 9).
 
-## Strong next extensions
+## 0.3 privacy-inspection tranche
 
-### 1. Office metadata cleaner
+### Office metadata cleaner — implemented
 
 **High value.** DOCX/XLSX/PPTX are ZIP-based OOXML files and often carry author,
 company, revision and custom property data. A local tool could inspect first,
@@ -45,26 +45,26 @@ Guardrails matter: comments, tracked changes and document content are not the
 same thing as file properties and should never be removed under a generic
 “metadata” action without an explicit choice.
 
-### 2. PDF inspector / metadata cleaner
+### PDF inspector / metadata cleaner — implemented
 
 Show title, author, creator, producer, dates, attachments, forms and JavaScript
 before cleaning. This is a better fit than quietly folding it into the PDF
 editor because inspection is part of the trust model.
 
-### 3. Batch image clean + convert
+### Batch image clean + convert — partly implemented
 
-The image and metadata tools naturally want multi-file mode: drag a folder/set,
-choose one operation, download a ZIP. This probably justifies one small ZIP
-library rather than hand-writing archive support.
+The metadata stripper now supports multi-file mode (up to 100 files) with ZIP output using `fflate`. Batch conversion remains a useful follow-on for the image converter, where a shared resize/format policy should be applied consistently to every file.
 
-### 4. Better redaction workflow
+## Strong next extensions
+
+### 1. Better redaction workflow
 
 Zoom/pan, page thumbnails, keyboard-friendly rectangle selection and output
 quality controls. Text-search-assisted redaction could be useful, but should
 only suggest locations: automatic redaction can miss text because PDF text
 extraction and visual layout are not equivalent.
 
-### 5. CSV operations that match real admin work
+### 2. CSV operations that match real admin work
 
 - choose columns used for deduplication;
 - rename/drop/reorder columns;
@@ -76,11 +76,19 @@ extraction and visual layout are not equivalent.
 These should remain transparent transformations rather than growing into a
 spreadsheet.
 
-### 6. Installable launcher
+### 3. Installable launcher
 
 Add a manifest/service worker for the hosted bundle so all tools can be cached
 for offline use. Keep the built standalone HTML files as the primary portable
 artefact; PWA support should be additive.
+
+### 4. Deeper PDF sanitation (explicit, not implied)
+
+The PDF privacy inspector now reports attachments, form fields, JavaScript and signatures, but metadata cleaning deliberately leaves them untouched. A later advanced mode could remove attachments and document/page JavaScript with a before/after report. It should remain separate from metadata cleaning because structural PDF sanitation can break forms, signatures and interactive documents.
+
+### 5. Office review workflow
+
+Add optional export of an inspection report (JSON/CSV) for teams reviewing many files before publication, and consider a deliberately separate “remove comments/accept tracked changes” workflow only if it can be made predictable across Word/Excel/PowerPoint.
 
 ## Things not to add just because they are easy
 
@@ -93,16 +101,12 @@ these properties:
 - local execution materially improves privacy or organisational confidence;
 - it composes naturally with another tool in this collection.
 
-## Repository / release approach
+## Release approach
 
-Before making the new GitHub repo public:
+The public repository is now the canonical source and clean GitHub Actions builds are the release gate. Before the first tagged release:
 
 1. settle the code/content licence split;
-2. run `npm run check`, `npm test` and `npm run build` on a clean install;
-3. smoke-test generated standalone HTML in Chromium and Firefox/Safari if
-   available;
-4. decide whether the repo is the product source (`local-tools`) or a Good Ship
-   umbrella repo with releases mirrored to the website;
-5. attach `dist/` or a ZIP of standalone tools to tagged releases;
-6. keep GitHub Actions intentionally small: check → test → build, with releases
-   only on tags.
+2. add a committed lockfile from a clean Node 22 install;
+3. smoke-test generated standalone HTML in Chromium and at least one WebKit/Firefox browser;
+4. attach the built `dist/` ZIP to tagged releases;
+5. keep GitHub Actions intentionally small: check → test → build, with release publication only on tags.

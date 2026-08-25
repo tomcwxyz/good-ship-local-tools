@@ -94,6 +94,30 @@ export function dropzone(accept, labelHtml, onFile) {
   return zone;
 }
 
+
+// Reusable accessible multi-file dropzone. onFiles(files) receives an array.
+export function dropzoneMulti(accept, labelHtml, onFiles) {
+  const input = el('input', { type: 'file', accept, multiple: true, class: 'gs-visually-hidden' });
+  const zone = el('div', {
+    class: 'gs-drop', role: 'button', tabIndex: 0,
+    'aria-label': 'Choose files or drop them here',
+  }, input);
+  zone.insertAdjacentHTML('afterbegin', labelHtml);
+  const choose = () => input.click();
+  zone.addEventListener('click', e => { if (e.target !== input) choose(); });
+  zone.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(); }
+  });
+  input.addEventListener('change', () => input.files.length && onFiles([...input.files]));
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); zone.classList.remove('drag');
+    if (e.dataTransfer.files.length) onFiles([...e.dataTransfer.files]);
+  });
+  return zone;
+}
+
 export function download(bytesOrBlob, filename, type) {
   const blob = bytesOrBlob instanceof Blob ? bytesOrBlob : new Blob([bytesOrBlob], { type });
   const url = URL.createObjectURL(blob);

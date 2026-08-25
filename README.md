@@ -11,7 +11,9 @@ launcher, or hand somebody one tool that opens directly in a modern browser.
 
 | Tool | What it does | Important behaviour |
 |------|--------------|--------------------|
-| Metadata stripper | Removes EXIF/XMP/IPTC/vendor metadata from JPEG and text/Exif/time metadata from PNG | Lossless. Keeps JPEG ICC colour profiles and Adobe markers needed for faithful rendering. |
+| Metadata stripper | Removes EXIF/XMP/IPTC/vendor metadata from JPEG and text/Exif/time metadata from PNG | Lossless. Keeps JPEG ICC colour profiles/Adobe markers; supports batches of up to 100 files with ZIP output. |
+| Office privacy inspector | Inspects/cleans personal and custom properties in DOCX/XLSX/PPTX and macro-enabled OOXML | Reports comments, tracked changes, notes, hidden sheets, macros, embedded files and external links separately; never silently removes them. |
+| PDF privacy inspector | Reports PDF Info/XMP metadata, attachments, forms, JavaScript and signatures | Metadata cleaning removes Info/XMP only; signed files require an explicit invalidation acknowledgement. |
 | Redaction | Blacks out regions of images and PDFs | Output is rasterised/flattened. PDF text, links, forms, annotations and hidden document data are not carried over. |
 | Image converter | SVG/PNG/JPEG/WebP conversion, resize and compression | Re-encodes pixels. Blocks SVGs that contain script or external web resources. |
 | PDF editor | Merge, drag-reorder, rotate, duplicate and remove pages | Page content is copied into a new PDF. PDF scripting/eval is disabled while previewing. |
@@ -30,7 +32,7 @@ The collection is deliberately stricter than “we promise not to upload it”:
 - remote font loading has been removed;
 - PDF.js scripting and eval are explicitly disabled when opening PDFs;
 - `npm run check` enforces the no-network-source rule and CSP coverage in CI;
-- critical lossless transforms have dependency-free automated tests.
+- critical transforms and privacy boundaries have automated tests, including OOXML package cleaning and PDF metadata removal.
 
 This does **not** mean every operation is lossless. Tools that rasterise or
 re-encode say so in the interface. A hosted copy is also only as trustworthy as
@@ -50,6 +52,8 @@ src/
 
 tools/
   metadata/
+  office/
+  pdf-inspect/
   redact/
   image/
   pdf/
@@ -79,7 +83,7 @@ there is no second list to keep in sync.
 
 ## Develop and verify
 
-Requires Node 22. Direct dependencies are pinned to reviewed versions; regenerate and commit a lockfile after the first clean install.
+Requires Node 22. Direct dependencies are pinned to reviewed versions. The project uses `fflate` for local ZIP/OOXML batch work; it has no runtime dependencies of its own.
 
 ```bash
 npm install
@@ -129,7 +133,4 @@ contract; see `ROADMAP.md`.
 
 Current repository licence: **CC BY-NC 4.0**.
 
-Before a public GitHub launch it is worth deciding whether the software code
-should instead use a conventional software licence (for example Apache-2.0 or
-MIT) while keeping Good Ship branding/content under a separate licence. No
-licence change has been made in this pass.
+Before the first tagged release, decide whether the software code should use a conventional software licence (for example Apache-2.0 or MIT) while keeping Good Ship branding/content under a separate licence. No licence change has been made in this pass.

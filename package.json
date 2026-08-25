@@ -1,6 +1,6 @@
 {
   "name": "good-ship-local-tools",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "description": "Small local-first tools. Nothing leaves your browser.",
@@ -21,6 +21,7 @@
     "js-yaml": "5.3.0",
     "diff": "9.0.0",
     "pdfjs-dist": "6.2.108",
-    "pdf-lib": "1.17.1"
+    "pdf-lib": "1.17.1",
+    "fflate": "0.8.3"
   }
 }

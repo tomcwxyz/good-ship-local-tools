@@ -1,7 +1,11 @@
 // Single source of truth for the launcher and production build entries.
 export const TOOLS = [
+  { id:'office', name:'Office privacy inspector', category:'privacy',
+    blurb:'Inspect and selectively clean Word, Excel and PowerPoint document properties without silently deleting comments or tracked changes.', keywords:'office docx xlsx pptx metadata author comments tracked changes privacy properties thumbnail' },
   { id:'metadata', name:'Metadata stripper', category:'privacy',
     blurb:'Remove EXIF, GPS location and author data from images before you share them. JPEG & PNG stripped losslessly.', keywords:'exif gps privacy jpeg png author metadata' },
+  { id:'pdf-inspect', name:'PDF privacy inspector', category:'privacy',
+    blurb:'Inspect PDF metadata, attachments, forms, JavaScript and signatures, then remove document Info/XMP metadata.', keywords:'pdf privacy inspect metadata attachments forms javascript signatures clean xmp' },
   { id:'redact', name:'Redaction', category:'privacy',
     blurb:'Flatten redactions into images and PDFs so the pixels underneath are not retained.', keywords:'redact pdf image privacy black out flatten sensitive' },
   { id:'image', name:'Image converter', category:'files',
