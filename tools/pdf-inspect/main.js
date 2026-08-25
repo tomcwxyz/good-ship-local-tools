@@ -2,6 +2,8 @@ import { chrome, header, assurance, dropzone, download, fmtBytes, baseName, el }
 import * as pdfjsLib from 'pdfjs-dist';
 import PdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?worker&inline';
 import { cleanPdfDocumentMetadata } from '../../src/lib/pdfprivacy.js';
+import { createInspectionReport, createInspectionSource, inspectionReportFilename, inspectionReportJson } from '../../src/lib/report.js';
+import { sha256Hex } from '../../src/lib/digest.js';
 
 pdfjsLib.GlobalWorkerOptions.workerPort = new PdfWorker();
 
@@ -85,6 +87,8 @@ function feature(label, count, note, { warn = false } = {}) {
 }
 
 function showResult(file, bytes, pages, info, xmp, signals) {
+  let lastCleaning = null;
+  const metadataFields = [];
   const wrap = el('div', { style:{ display:'flex', flexDirection:'column', gap:'1rem' } });
   const intro = el('div', { class:'gs-card', style:{ display:'flex', justifyContent:'space-between', gap:'1rem', flexWrap:'wrap' } },
     el('div', {}, el('div', { class:'gs-mono', style:{ fontSize:'.8rem' } }, file.name), el('div', { class:'gs-muted', style:{ fontSize:'.8rem', marginTop:'.2rem' } }, `${pages} page${pages === 1 ? '' : 's'}`)),
@@ -99,18 +103,18 @@ function showResult(file, bytes, pages, info, xmp, signals) {
       for (const [customKey, customValue] of Object.entries(value)) {
         const shown = displayValue(customValue);
         if (!shown) continue;
-        props.append(propRow(`Custom · ${customKey}`, shown)); propCount++;
+        props.append(propRow(`Custom · ${customKey}`, shown)); metadataFields.push(`Custom · ${customKey}`); propCount++;
       }
       continue;
     }
     const shown = displayValue(value);
     if (!shown) continue;
-    props.append(propRow(key, shown)); propCount++;
+    props.append(propRow(key, shown)); metadataFields.push(key); propCount++;
   }
   for (const [key, value] of Object.entries(xmp)) {
     const shown = displayValue(value);
     if (!shown) continue;
-    props.append(propRow(`XMP · ${key}`, shown)); propCount++;
+    props.append(propRow(`XMP · ${key}`, shown)); metadataFields.push(`XMP · ${key}`); propCount++;
   }
   if (!propCount) props.append(el('div', { class:'gs-muted', style:{ fontSize:'.84rem' } }, 'No common Info/XMP metadata was reported.'));
 
@@ -143,17 +147,72 @@ function showResult(file, bytes, pages, info, xmp, signals) {
       const result = await cleanPdfDocumentMetadata(bytes);
       if (!result.removed.length) { status.textContent = 'No document Info/XMP metadata was present to remove.'; return; }
       download(result.bytes, `${baseName(file.name)}-metadata-clean.pdf`, 'application/pdf');
+      lastCleaning = { removed:[...result.removed], signatureInvalidated:Boolean(signals.signatures) };
       status.textContent = `Cleaned copy created · ${result.removed.join(' · ')}`;
     } catch (err) { status.textContent = 'Could not clean this PDF: ' + err.message; }
   } }, 'Remove metadata & download');
   cleanCard.append(clean, status);
+
+  const includeSourceName = el('input', { type:'checkbox', id:'pdf-report-name' });
+  const includeValues = el('input', { type:'checkbox', id:'pdf-report-values' });
+  const reportStatus = el('span', { class:'gs-mono gs-muted', style:{ fontSize:'.72rem' }, 'aria-live':'polite' });
+  const report = el('button', { class:'gs-btn gs-btn-ghost', onclick:async () => {
+    report.disabled = true;
+    reportStatus.textContent = 'Hashing source and building report…';
+    try {
+      let sha256 = null;
+      try { sha256 = await sha256Hex(bytes); } catch { /* report still works if Web Crypto is unavailable */ }
+      const payload = createInspectionReport({
+        tool: 'pdf-privacy-inspector',
+        source: createInspectionSource({
+          name:file.name,
+          includeName:includeSourceName.checked,
+          sha256,
+          size:bytes.length,
+          mediaType:file.type || 'application/pdf',
+          pages,
+        }),
+        findings: { metadataFields, signals },
+        details: { metadata: { info, xmp } },
+        includeDetails: includeValues.checked,
+        cleaning: {
+          selected: { documentInformation:true, xmpMetadata:true },
+          completed: lastCleaning,
+        },
+        limitations: [
+          'Attachments, form fields, JavaScript actions and signatures are reported but not removed by metadata cleaning.',
+          'This report does not include visible PDF page content.',
+          ...(sha256 ? [] : ['A SHA-256 source fingerprint was unavailable in this browser context.']),
+        ],
+      });
+      download(inspectionReportJson(payload), inspectionReportFilename({
+        sha256,
+        name:baseName(file.name),
+        includeName:includeSourceName.checked,
+      }), 'application/json;charset=utf-8');
+      const disclosure = includeValues.checked || includeSourceName.checked ? 'Identified report' : 'Summary report';
+      reportStatus.textContent = `${disclosure} downloaded.`;
+    } catch (err) {
+      reportStatus.textContent = 'Could not build report: ' + err.message;
+    } finally {
+      report.disabled = false;
+    }
+  } }, 'Download inspection report');
+  const reportCard = el('section', { class:'gs-card' },
+    el('div', { class:'gs-label', style:{ marginBottom:'.45rem' } }, 'inspection report'),
+    el('p', { class:'gs-muted', style:{ fontSize:'.78rem', marginTop:0 } }, 'Summary reports use a SHA-256 source fingerprint, file size/type, metadata field names, embedded-feature counts and completed cleaning actions. They omit the original filename and metadata values by default.'),
+    el('label', { for:'pdf-report-name', style:{ display:'flex', gap:'.5rem', alignItems:'flex-start', fontSize:'.8rem', cursor:'pointer', marginBottom:'.45rem' } }, includeSourceName,
+      el('span', {}, el('strong', {}, 'Include source filename'), ' — filenames can themselves contain names, case references or other sensitive information.')),
+    el('label', { for:'pdf-report-values', style:{ display:'flex', gap:'.5rem', alignItems:'flex-start', fontSize:'.8rem', cursor:'pointer' } }, includeValues,
+      el('span', {}, el('strong', {}, 'Include metadata values'), ' — this may place author, title and custom metadata into the report itself.')),
+    el('div', { class:'gs-toolbar', style:{ marginTop:'.65rem' } }, report, reportStatus));
 
   const stronger = el('div', { class:'gs-warn' }, el('div', {},
     el('strong', {}, 'Need a stronger disclosure-safe copy? '),
     el('span', {}, 'Use the redaction tool to rasterise/flatten pages. That is destructive, but it removes selectable text, forms, links and hidden document structure from the output. '),
     el('a', { href:'../redact/index.html' }, 'Open redaction →')));
 
-  wrap.append(intro, props, features, cleanCard, stronger,
+  wrap.append(intro, props, features, cleanCard, reportCard, stronger,
     el('button', { class:'gs-btn gs-btn-ghost', style:{ alignSelf:'flex-start' }, onclick:start }, 'Another PDF'));
   render(wrap);
 }
