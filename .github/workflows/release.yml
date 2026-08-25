@@ -39,44 +39,17 @@ jobs:
           cp "$GITHUB_WORKSPACE/scripts/browser-smoke.mjs" .
           node browser-smoke.mjs "$GITHUB_WORKSPACE/dist"
       - name: Package verified release assets
-        id: package
         shell: bash
         run: |
           set -euo pipefail
           VERSION="${GITHUB_REF_NAME#v}"
-          PACKAGE_VERSION="$(node -p "JSON.parse(require('fs').readFileSync('package.json','utf8')).version")"
-          if [ "$VERSION" != "$PACKAGE_VERSION" ]; then
-            echo "Tag $GITHUB_REF_NAME does not match package version $PACKAGE_VERSION" >&2
-            exit 1
-          fi
-
-          ASSET_DIR="$RUNNER_TEMP/release-assets"
-          BUNDLE_NAME="good-ship-local-tools-$VERSION"
-          BUNDLE_DIR="$RUNNER_TEMP/$BUNDLE_NAME"
-          mkdir -p "$ASSET_DIR" "$BUNDLE_DIR"
-          cp -R dist/. "$BUNDLE_DIR/"
-          cp LICENSE NOTICE README.md "$BUNDLE_DIR/"
-          (cd "$RUNNER_TEMP" && zip -qr "$ASSET_DIR/$BUNDLE_NAME.zip" "$BUNDLE_NAME")
-
-          cp LICENSE NOTICE "$ASSET_DIR/"
-          cp dist/index.html "$ASSET_DIR/good-ship-local-tools-$VERSION-launcher.html"
-          for entry in dist/tools/*/index.html; do
-            tool="$(basename "$(dirname "$entry")")"
-            cp "$entry" "$ASSET_DIR/good-ship-local-tools-$VERSION-$tool.html"
-          done
-
-          (
-            cd "$ASSET_DIR"
-            sha256sum *.html *.zip LICENSE NOTICE | sort -k2 > RELEASE-SHA256SUMS.txt
-            sha256sum -c RELEASE-SHA256SUMS.txt
-          )
-          echo "asset_dir=$ASSET_DIR" >> "$GITHUB_OUTPUT"
+          bash scripts/package-release.sh "$VERSION" "$RUNNER_TEMP/release-assets"
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          gh release create "$GITHUB_REF_NAME" "${{ steps.package.outputs.asset_dir }}"/* \
+          gh release create "$GITHUB_REF_NAME" "$RUNNER_TEMP/release-assets"/* \
             --title "Good Ship Local Tools $GITHUB_REF_NAME" \
             --generate-notes
