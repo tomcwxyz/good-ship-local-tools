@@ -33,6 +33,7 @@ The collection is deliberately stricter than “we promise not to upload it”:
 - PDF.js scripting and eval are explicitly disabled when opening PDFs;
 - `npm run check` enforces the no-network-source rule and source CSP coverage in CI;
 - `npm run verify:dist` checks the **built** standalone HTML for sealed CSP, external assets/embeds and unexpected build files, then writes `SHA256SUMS.txt`;
+- the built standalone files are smoke-tested directly under `file://` in Chromium, Firefox and WebKit, with page/console/network failures treated as failures;
 - critical transforms and privacy boundaries have automated tests, including OOXML package cleaning and PDF metadata removal;
 - summary inspection reports omit source filenames and metadata values by default, using a SHA-256 fingerprint when available.
 
@@ -68,6 +69,7 @@ tools/
 test/                     Node built-in tests
 scripts/check.mjs         source syntax + privacy-boundary checks
 scripts/check-dist.mjs    production HTML + checksum verification
+scripts/browser-smoke.mjs direct-file browser smoke harness
 build.mjs                 per-entry single-file production build
 ```
 
@@ -111,6 +113,29 @@ Every `tools/<tool>/index.html` is self-contained and can be distributed on its
 own. `SHA256SUMS.txt` lets a downloaded/rehosted standalone file be checked against
 the exact artefact produced by CI.
 
+Cross-browser smoke testing runs separately in GitHub Actions. It rebuilds the
+verified output, opens every standalone HTML file directly from disk in Chromium,
+Firefox and WebKit, and exercises file input in the checksum and CSV/TSV tools.
+Keeping this harness isolated means Playwright is not part of the application
+runtime or lockfile.
+
+## Releases
+
+Tags matching `v<package-version>` trigger the release workflow. A release is
+only published after the normal source/test/build verification **and** the
+cross-browser standalone smoke suite pass.
+
+A release contains:
+
+- `good-ship-local-tools-<version>.zip` with the verified `dist/`, README,
+  `LICENSE` and `NOTICE`;
+- a renamed standalone HTML asset for the launcher and every tool;
+- `LICENSE` and `NOTICE` alongside those standalone assets;
+- `RELEASE-SHA256SUMS.txt` covering the release assets.
+
+The workflow refuses to publish when the Git tag and `package.json` version do
+not match.
+
 ## Design principles
 
 1. **Local is the default, not a mode.** A basic utility should not need an
@@ -137,6 +162,9 @@ contract; see `ROADMAP.md`.
 
 ## Licence
 
-Current repository licence: **CC BY-NC 4.0**.
+The software and documentation in this repository are licensed under the
+**Apache License 2.0**; see `LICENSE`.
 
-Before the first tagged release, decide whether the software code should use a conventional software licence (for example Apache-2.0 or MIT) while keeping Good Ship branding/content under a separate licence. No licence change has been made in this pass.
+The Apache licence does not grant permission to use The Good Ship name, logos,
+service marks or distinctive visual identity as branding for derived products.
+See `NOTICE` for the brand boundary.
