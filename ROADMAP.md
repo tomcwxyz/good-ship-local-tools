@@ -66,10 +66,15 @@ extraction and visual layout are not equivalent.
 
 ### 2. CSV operations that match real admin work
 
+Completed in 0.4:
+
 - choose columns used for deduplication;
+- delimiter/TSV support;
+- scoped literal find/replace with a preview count.
+
+Still useful:
+
 - rename/drop/reorder columns;
-- find/replace with preview;
-- delimiter choice and TSV support;
 - date normalisation with an explicit target format;
 - optional worker-based parsing for genuinely large files.
 
