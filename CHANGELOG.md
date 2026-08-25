@@ -1,6 +1,16 @@
 # Changelog
 
-## 0.8.0 — in progress
+## 0.9.0 — in progress
+
+- adopt Apache-2.0 for the repository, with a NOTICE that keeps The Good Ship name, logos and visual identity outside the licence grant;
+- add cross-browser smoke testing for every built standalone HTML file in Chromium, Firefox and WebKit under `file://`;
+- exercise the checksum and CSV/TSV file-input paths during browser smoke testing rather than checking page load alone;
+- fail browser smoke tests on page errors, console errors, unexpected external asset elements or network requests;
+- add a tag-driven release workflow that repeats source checks, tests, production verification and cross-browser smoke before publishing;
+- verify release tags match `package.json` version;
+- publish a versioned ZIP, renamed standalone HTML tools, licence/notice and release-level SHA-256 checksums.
+
+## 0.8.0
 
 - commit a clean Node 22 npm lockfile and switch CI to reproducible `npm ci` installs with npm caching;
 - verify every built standalone HTML file after Vite has finished, not only the source tree;

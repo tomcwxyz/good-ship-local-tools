@@ -29,16 +29,32 @@ async function handle(file) {
   }
 }
 
+function detectDelimiter(text) {
+  // Papa's delimiter guess uses the parsed row shape. Our real parse deliberately
+  // preserves blank rows so the user controls whether they are removed, but a
+  // trailing blank line can make a short TSV/CSV look like a one-column file to
+  // the guesser. Probe separately with blank lines ignored, then use that explicit
+  // delimiter for the real parse so row preservation and delimiter detection do
+  // not interfere with one another.
+  const probe = Papa.parse(text, {
+    header: false,
+    skipEmptyLines: 'greedy',
+    preview: 20,
+    dynamicTyping: false,
+  });
+  return probe.meta.delimiter || ',';
+}
+
 function parseCsv(buffer, encoding, delimiter) {
   const decoded = decodeTextBuffer(buffer, encoding);
-  const options = {
+  const actualDelimiter = delimiter === 'auto' ? detectDelimiter(decoded.text) : delimiter;
+  const parsed = Papa.parse(decoded.text, {
     header: true,
+    delimiter: actualDelimiter,
     // Preserve blank source rows here; the cleaning option below decides whether they are removed.
     skipEmptyLines: false,
     dynamicTyping: false,
-  };
-  if (delimiter !== 'auto') options.delimiter = delimiter;
-  const parsed = Papa.parse(decoded.text, options);
+  });
   return { ...parsed, encoding: decoded.encoding };
 }
 
