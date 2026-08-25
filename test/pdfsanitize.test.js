@@ -22,3 +22,15 @@ test('structural PDF rebuild keeps visible pages but starts with a fresh documen
   assert.equal(names, undefined);
   assert.equal(rebuilt.removedByConstruction.includes('digital signatures'), true);
 });
+
+test('structural PDF rebuild preserves a valid blank page with no Contents stream', async () => {
+  const source = await PDFDocument.create({ updateMetadata:false });
+  const page = source.addPage([300, 400]);
+  assert.equal(page.node.has(PDFName.of('Contents')), false);
+  const original = await source.save({ useObjectStreams:false });
+
+  const rebuilt = await rebuildPdfStructure(original);
+  const result = await PDFDocument.load(rebuilt.bytes, { updateMetadata:false });
+  assert.equal(result.getPageCount(), 1);
+  assert.deepEqual(result.getPage(0).getSize(), { width:300, height:400 });
+});
