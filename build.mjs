@@ -27,7 +27,7 @@ for (const html of entries) {
   hardenBuiltHtml(resolve('dist', html));
   console.log('built', html);
 }
-console.log(`\nBuilt launcher + ${TOOLS.length} standalone tools into dist/`);
+console.log(`\nBuilt Sets launcher + ${TOOLS.length} standalone tools into dist/`);
 
 function hardenBuiltHtml(path) {
   let html = readFileSync(path, 'utf8');
@@ -41,6 +41,7 @@ function hardenBuiltHtml(path) {
   if (!hashes.length) throw new Error(`No inlined production script found in ${path}`);
 
   html = html
+    .replace('<title>The Good Ship · ', '<title>Sets · ')
     .replace("connect-src 'self';", "connect-src 'none';")
     .replace("script-src 'self';", `script-src 'self' ${[...new Set(hashes)].join(' ')};`);
   writeFileSync(path, html);

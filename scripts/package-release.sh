@@ -21,7 +21,7 @@ if [ ! -f dist/SHA256SUMS.txt ]; then
 fi
 
 WORK_ROOT="${RUNNER_TEMP:-$(mktemp -d)}"
-BUNDLE_NAME="good-ship-local-tools-$VERSION"
+BUNDLE_NAME="sets-$VERSION"
 BUNDLE_DIR="$WORK_ROOT/$BUNDLE_NAME"
 
 rm -rf "$ASSET_DIR" "$BUNDLE_DIR"
@@ -31,10 +31,10 @@ cp LICENSE NOTICE README.md "$BUNDLE_DIR/"
 (cd "$WORK_ROOT" && zip -qr "$ASSET_DIR/$BUNDLE_NAME.zip" "$BUNDLE_NAME")
 
 cp LICENSE NOTICE "$ASSET_DIR/"
-cp dist/index.html "$ASSET_DIR/good-ship-local-tools-$VERSION-launcher.html"
+cp dist/index.html "$ASSET_DIR/sets-$VERSION-launcher.html"
 for entry in dist/tools/*/index.html; do
   tool="$(basename "$(dirname "$entry")")"
-  cp "$entry" "$ASSET_DIR/good-ship-local-tools-$VERSION-$tool.html"
+  cp "$entry" "$ASSET_DIR/sets-$VERSION-$tool.html"
 done
 
 (
@@ -43,10 +43,11 @@ done
   sha256sum -c RELEASE-SHA256SUMS.txt
 )
 
+EXPECTED_HTML_COUNT="$(find dist -type f -name 'index.html' | wc -l | tr -d ' ')"
 HTML_COUNT="$(find "$ASSET_DIR" -maxdepth 1 -type f -name '*.html' | wc -l | tr -d ' ')"
-if [ "$HTML_COUNT" != '12' ]; then
-  echo "Expected 12 standalone HTML release assets; found $HTML_COUNT." >&2
+if [ "$HTML_COUNT" != "$EXPECTED_HTML_COUNT" ]; then
+  echo "Expected $EXPECTED_HTML_COUNT standalone HTML release assets from the verified dist; found $HTML_COUNT." >&2
   exit 1
 fi
 
-printf 'Release assets ready: %s\n' "$ASSET_DIR"
+printf 'Sets release assets ready: %s\n' "$ASSET_DIR"
