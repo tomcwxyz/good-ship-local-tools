@@ -41,7 +41,7 @@ export function chrome(subtitle, { back = true } = {}) {
   }
   const content = el('div');
   const foot = el('footer', { class: 'gs-foot' });
-  foot.innerHTML = '<b>The Good Ship</b> <span>· tomcw.xyz · CC BY-NC 4.0</span>';
+  foot.innerHTML = '<b>The Good Ship</b> <span>· tomcw.xyz · code Apache-2.0 · Good Ship identity reserved</span>';
   wrap.append(content, foot);
   document.body.append(nav, wrap);
   return content;
@@ -93,7 +93,6 @@ export function dropzone(accept, labelHtml, onFile) {
   });
   return zone;
 }
-
 
 // Reusable accessible multi-file dropzone. onFiles(files) receives an array.
 export function dropzoneMulti(accept, labelHtml, onFiles) {
