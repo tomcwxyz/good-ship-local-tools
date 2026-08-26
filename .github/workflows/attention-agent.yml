@@ -26,7 +26,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: npm
-          cache-dependency-path: experiments/attention-agent/package.json
       - run: npm install --ignore-scripts
       - run: npm run check
