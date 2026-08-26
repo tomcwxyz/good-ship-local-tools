@@ -1,0 +1,32 @@
+name: Attention agent pilot
+
+on:
+  push:
+    branches:
+      - pilot/attention-agent
+    paths:
+      - "experiments/attention-agent/**"
+      - ".github/workflows/attention-agent.yml"
+  pull_request:
+    paths:
+      - "experiments/attention-agent/**"
+      - ".github/workflows/attention-agent.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: experiments/attention-agent
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: experiments/attention-agent/package.json
+      - run: npm install --ignore-scripts
+      - run: npm run check
