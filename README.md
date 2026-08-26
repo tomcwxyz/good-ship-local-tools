@@ -8,9 +8,9 @@ Each tool builds as a **single self-contained HTML file**. You can host the whol
 
 ## Why “Sets”?
 
-The name came while watching surfers on Rotterdam’s man-made wave. The interesting thing was not really the surfing; it was the rhythm: a controlled wave arrives, somebody does one bounded thing, comes round, and does it again. Repeatable, useful, predictable.
+The name came while spending a day in Rotterdam , whiling away drinking coffee and watching surfers on Rotterdam’s man-made wave. Repeated and controllable, rhythmical: a controlled wave arrives, you drop in and round it goes again. Repeatable, useful, predictable.
 
-That felt like the right description for these tools too. A **set** is a group of waves, a collection of tools, and a small repeatable routine. Sets is for the jobs you need to do again and again — inspect a file, clean a dataset, rebuild a PDF, strip metadata, compare documents — without turning each one into a new service, account or upload.
+My mind wandered to the type of repeatable things that I and others often need. And so these tools were born.  A **set** is a group of waves, a collection of tools, and a small repeatable routine. Sets is for the jobs you need to do again and again — inspect a file, clean a dataset, rebuild a PDF, strip metadata, compare documents — without turning each one into a new service, account or upload.
 
 Sets is made by **The Good Ship**.
 
@@ -36,7 +36,6 @@ Sets is made by **The Good Ship**.
 
 ## Trust boundary
 
-Sets is deliberately stricter than “we promise not to upload it”:
 
 - first-party JavaScript contains no `fetch`, XHR, WebSocket, EventSource or beacon calls;
 - every HTML entry has a Content Security Policy that blocks unexpected external resources;
@@ -48,7 +47,7 @@ Sets is deliberately stricter than “we promise not to upload it”:
 - critical transforms and privacy boundaries have automated tests, including OOXML cleaning, PDF metadata removal, structural PDF rebuilding, redaction geometry, personal-data pattern matching and pseudonymisation;
 - summary inspection reports omit source filenames and metadata values by default, using a SHA-256 fingerprint when available.
 
-This does **not** mean every operation is lossless or that automated checks can establish a file is safe to publish. Tools that rasterise, rebuild or re-encode say so in the interface. A hosted copy is also only as trustworthy as the HTML/JavaScript actually served by that host; standalone release files are easier to inspect and retain unchanged.
+This does **not** mean every operation is lossless or that automated checks can establish a file is safe to publish. 
 
 ## Architecture
 
