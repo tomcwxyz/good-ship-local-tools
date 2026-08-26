@@ -1,8 +1,6 @@
 import { optionalEnv, requiredEnv } from "../lib/http.js";
 import type { McpToolHub } from "./mcp.js";
 
-const MUTATING_TOOLS = new Set(["tending_create_moment", "swells_create_observation"]);
-
 const SYSTEM_PROMPT = `You are an attention agent: one reasoning layer across several distinct tools and memories.
 
 Your overriding job is to help the user notice what deserves attention, understand why it matters, remember selectively, decide deliberately, and act carefully.
@@ -78,7 +76,7 @@ export class AttentionAgent {
           args = {};
         }
 
-        if (MUTATING_TOOLS.has(call.function.name)) {
+        if (this.hub.requiresApproval(call.function.name)) {
           const approved = await this.approve(call.function.name, args);
           if (!approved) {
             this.messages.push({
