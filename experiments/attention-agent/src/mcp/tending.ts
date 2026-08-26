@@ -7,7 +7,8 @@ import { createApiClient, jsonToolResult, requiredEnv } from "../lib/http.js";
 const baseUrl = process.env.TENDING_BASE_URL?.trim() || "http://localhost:3000";
 const api = createApiClient(baseUrl, requiredEnv("TENDING_API_KEY"));
 
-type ListResponse<T> = { data: T[] };
+type ApiResponse<T> = { success: true; data: T };
+type ListPayload<T> = { data: T[] };
 
 type Connection = {
   id: string;
@@ -17,6 +18,11 @@ type Connection = {
   contactDetails?: { email?: string | null } | null;
   [key: string]: unknown;
 };
+
+async function readList<T>(path: string) {
+  const response = await api<ApiResponse<ListPayload<T>>>(path);
+  return response.data.data;
+}
 
 function buildServer() {
   const server = new McpServer({ name: "tending", version: "0.1.0" });
@@ -33,10 +39,10 @@ function buildServer() {
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
     async ({ query, limit }) => {
-      const response = await api<ListResponse<Connection>>(`/api/v1/connections?limit=${limit}`);
+      const connections = await readList<Connection>(`/api/v1/connections?limit=${limit}`);
       const needle = query.toLowerCase();
       const data = needle
-        ? response.data.filter((connection) =>
+        ? connections.filter((connection) =>
             [
               connection.name,
               connection.organisation,
@@ -46,7 +52,7 @@ function buildServer() {
               .filter(Boolean)
               .some((value) => String(value).toLowerCase().includes(needle)),
           )
-        : response.data;
+        : connections;
       return jsonToolResult({ data });
     },
   );
@@ -61,7 +67,7 @@ function buildServer() {
       }),
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
-    async ({ limit }) => jsonToolResult(await api(`/api/v1/moments?limit=${limit}`)),
+    async ({ limit }) => jsonToolResult({ data: await readList(`/api/v1/moments?limit=${limit}`) }),
   );
 
   server.registerTool(
@@ -74,7 +80,8 @@ function buildServer() {
       }),
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
-    async ({ limit }) => jsonToolResult(await api(`/api/v1/observations?limit=${limit}`)),
+    async ({ limit }) =>
+      jsonToolResult({ data: await readList(`/api/v1/observations?limit=${limit}`) }),
   );
 
   server.registerTool(
@@ -94,13 +101,13 @@ function buildServer() {
         openWorldHint: false,
       },
     },
-    async ({ content, connectionIds, eventDate }) =>
-      jsonToolResult(
-        await api("/api/v1/moments", {
-          method: "POST",
-          body: JSON.stringify({ content, connectionIds, ...(eventDate ? { eventDate } : {}) }),
-        }),
-      ),
+    async ({ content, connectionIds, eventDate }) => {
+      const response = await api<ApiResponse<unknown>>("/api/v1/moments", {
+        method: "POST",
+        body: JSON.stringify({ content, connectionIds, ...(eventDate ? { eventDate } : {}) }),
+      });
+      return jsonToolResult(response.data);
+    },
   );
 
   return server;
