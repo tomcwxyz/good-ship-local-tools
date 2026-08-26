@@ -13,9 +13,14 @@ type ListPayload<T> = { data: T[] };
 type Connection = {
   id: string;
   name?: string | null;
-  organisation?: string | null;
-  role?: string | null;
-  contactDetails?: { email?: string | null } | null;
+  type?: string | null;
+  threadSummary?: string | null;
+  contactDetails?: {
+    email?: string | null;
+    phone?: string | null;
+    website?: string | null;
+    location?: string | null;
+  } | null;
   [key: string]: unknown;
 };
 
@@ -31,7 +36,7 @@ function buildServer() {
     "tending_search_connections",
     {
       description:
-        "Search Tending relationships/connections. Use this when you need to understand who someone is, whether they are already known, or relationship context before acting.",
+        "Search Tending relationships/connections. Use this first to resolve a person or organisation before reading their relationship context.",
       inputSchema: z.object({
         query: z.string().trim().default(""),
         limit: z.number().int().min(1).max(200).default(100),
@@ -45,9 +50,11 @@ function buildServer() {
         ? connections.filter((connection) =>
             [
               connection.name,
-              connection.organisation,
-              connection.role,
+              connection.type,
+              connection.threadSummary,
               connection.contactDetails?.email,
+              connection.contactDetails?.phone,
+              connection.contactDetails?.location,
             ]
               .filter(Boolean)
               .some((value) => String(value).toLowerCase().includes(needle)),
@@ -58,10 +65,29 @@ function buildServer() {
   );
 
   server.registerTool(
+    "tending_get_relationship_context",
+    {
+      description:
+        "Read the durable Tending context for one resolved connection: its current relationship summary, linked Moments and relationship observations. Prefer this over scanning all recent Moments when preparing for or understanding a particular relationship.",
+      inputSchema: z.object({
+        connectionId: z.string().uuid(),
+        limit: z.number().int().min(1).max(100).default(30),
+      }),
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    async ({ connectionId, limit }) => {
+      const response = await api<ApiResponse<Record<string, unknown>>>(
+        `/api/v1/connections/${connectionId}/context?limit=${limit}`,
+      );
+      return jsonToolResult(response.data);
+    },
+  );
+
+  server.registerTool(
     "tending_recent_moments",
     {
       description:
-        "Read recent Tending Moments: deliberately kept relationship events and reflections. Use these as durable relationship memory, not as a complete activity log.",
+        "Read recent Tending Moments across the organisation: deliberately kept relationship events and reflections. Use these for broad recency scans, not as a substitute for relationship-specific context.",
       inputSchema: z.object({
         limit: z.number().int().min(1).max(100).default(30),
       }),
@@ -74,7 +100,7 @@ function buildServer() {
     "tending_recent_observations",
     {
       description:
-        "Read recent Tending observations about relationship context. Use them to supplement Moments when understanding a relationship.",
+        "Read recent Tending observations across the organisation. Use them for broad attention scans; relationship-specific observations are returned by tending_get_relationship_context.",
       inputSchema: z.object({
         limit: z.number().int().min(1).max(100).default(30),
       }),
