@@ -7,6 +7,7 @@ export type AvailableTool = {
   name: string;
   description?: string;
   inputSchema: Record<string, unknown>;
+  annotations?: { readOnlyHint?: boolean };
 };
 
 type ProductConfig = {
@@ -83,6 +84,7 @@ export class McpToolHub {
           name: tool.name,
           description: tool.description,
           inputSchema: tool.inputSchema as Record<string, unknown>,
+          annotations: tool.annotations as { readOnlyHint?: boolean } | undefined,
         });
       }
     }
@@ -91,6 +93,13 @@ export class McpToolHub {
 
   listTools() {
     return [...this.tools];
+  }
+
+  requiresApproval(name: string) {
+    const tool = this.tools.find((candidate) => candidate.name === name);
+    if (!tool) return true;
+    // Safety default: anything not explicitly declared read-only asks first.
+    return tool.annotations?.readOnlyHint !== true;
   }
 
   async callTool(name: string, args: Record<string, unknown>) {
