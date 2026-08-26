@@ -18,7 +18,7 @@ The working loop is: **notice → understand → remember → decide → act**.
 
 1. One agent can reason across three existing products without copying all their data into a new central store.
 2. Each product can expose a small, semantically meaningful MCP surface rather than generic database CRUD.
-3. Read tools can be used freely, while durable writes require explicit human confirmation.
+3. Tools explicitly annotated read-only can be used freely; everything else requires human confirmation before execution.
 4. The same agent-side code can connect to local stdio MCP servers today or remote Streamable HTTP MCP endpoints later.
 5. A local agent process can use either a local OpenAI-compatible model server or a cloud model; where the model runs is independent of where the MCP tools run.
 
@@ -27,6 +27,7 @@ The working loop is: **notice → understand → remember → decide → act**.
 ### Tending
 
 - `tending_search_connections`
+- `tending_get_relationship_context` — one connection's summary, linked Moments and relationship observations
 - `tending_recent_moments`
 - `tending_recent_observations`
 - `tending_create_moment` **(confirmed write)**
@@ -99,6 +100,8 @@ Try questions that genuinely cross product boundaries:
 Prepare me for my next conversation with Amina. What should I remember and what wider changes might be relevant?
 ```
 
+For that query the agent should resolve Amina with `tending_search_connections`, then use `tending_get_relationship_context` rather than trying to infer her history from an organisation-wide list of Moments.
+
 ```text
 What seems to deserve attention across relationships, current signals and open decisions?
 ```
@@ -113,7 +116,7 @@ For the last example the useful behaviour is not to duplicate the paragraph ever
 - a wider pattern that may deserve a Swells Observation;
 - a possible governance question that should become a Glade decision candidate for review.
 
-If it tries to create a Tending Moment or Swells Observation, the CLI shows the exact proposed content and waits for `y`/`yes` before calling the write tool.
+If it tries to call any MCP tool that is not explicitly marked `readOnlyHint: true`, the CLI shows the proposed call and waits for `y`/`yes` before executing it. This deliberately fails safe as new tools are added later.
 
 ## Cloud-agent path
 
