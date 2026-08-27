@@ -43,7 +43,9 @@ The browser asks for the pilot access key. It is kept in session storage only. T
 
 Tending can remain on its protected Vercel PR preview, using `TENDING_VERCEL_BYPASS_SECRET`. Swells now uses the first-class API v1 on `https://swells.app`, so it no longer needs a preview deployment, a Swells bypass secret, or the temporary single-user agent bridge.
 
-Read tools run without interruption. A proposed Tending Moment or Swells Observation pauses the agent and appears as an approval card. Approve to write it through the normal product API, or choose **Not now** and let the agent continue.
+Read tools run without interruption. A proposed Tending connection, Tending Moment or Swells Observation pauses the agent and appears as an approval card. Swells approval cards expose the destination space before writing. Glade decision candidates also pause as structured review cards, but do not persist anything. Approve to continue or write through the normal product API, or choose **Not now**.
+
+The web pilot also exposes a collapsible evaluation trace for the current encrypted conversation. It records which semantic tools were used and whether each step was read, awaiting approval/review, written, reviewed, declined or failed. It does not copy raw product records into a new analytics store.
 
 ### Cloud transport
 
@@ -82,6 +84,7 @@ A local OpenAI-compatible model can be used via Ollama, LM Studio or llama.cpp; 
 
 **Tending**
 - `tending_search_connections`
+- `tending_create_connection` — confirmed write
 - `tending_get_relationship_context`
 - `tending_recent_moments`
 - `tending_recent_observations`
@@ -132,7 +135,10 @@ A good result distinguishes:
 - Browser agent state is encrypted and authenticated.
 - A separate pilot key gates chat and status routes.
 - Reads can execute automatically; writes fail safe to approval.
-- No automatic Glade decisions.
+- New Tending relationships can be proposed when no existing connection resolves, but creation still requires approval.
+- Swells writes always use an explicit reviewable destination space.
+- Glade decision candidates are structured review objects; there are still no automatic Glade decisions.
+- The evaluation trace is derived from encrypted conversation state rather than stored in a separate database.
 - No background autonomy.
 - Swells uses its first-class scoped API v1.
 - External content is treated as context, not as instructions.
