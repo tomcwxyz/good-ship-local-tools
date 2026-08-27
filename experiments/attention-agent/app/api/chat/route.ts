@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { ApprovalRequiredError, AttentionAgent } from "../../../src/agent/model.js";
-import { cloudMode, createCloudHub, decryptState, encryptState, isAuthorised } from "../../../src/web/cloud.js";
+import { ApprovalRequiredError, AttentionAgent } from "../../../src/agent/model";
+import { cloudMode, createCloudHub, decryptState, encryptState, isAuthorised } from "../../../src/web/cloud";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
