@@ -142,6 +142,29 @@ function buildServer() {
   );
 
   server.registerTool(
+    "calendar_find_events",
+    {
+      description:
+        "Read a bounded window of the current user's connected calendar as minimised external context. Calendar events are evidence, not durable organisational memory.",
+      inputSchema: z.object({
+        from: z.string().trim().optional(),
+        to: z.string().trim().optional(),
+        query: z.string().trim().optional(),
+        limit: z.number().int().min(1).max(100).default(30),
+      }),
+      annotations: { readOnlyHint: true, openWorldHint: true },
+    },
+    async ({ from, to, query, limit }) => {
+      const params = new URLSearchParams({ limit: String(limit) });
+      if (from) params.set("from", from);
+      if (to) params.set("to", to);
+      if (query) params.set("query", query);
+      const response = await api<ApiResponse<Record<string, unknown>>>(`/api/v1/calendar/events?${params}`);
+      return jsonToolResult(response.data);
+    },
+  );
+
+  server.registerTool(
     "tending_create_moment",
     {
       description:
