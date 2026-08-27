@@ -51,6 +51,47 @@ type ChatResponse = { choices?: Array<{ message?: AssistantMessage }>; error?: {
 export type ApprovalDecision = boolean | "defer";
 export type ApprovalHandler = (toolName: string, args: Record<string, unknown>) => Promise<ApprovalDecision>;
 export type AgentSnapshot = { messages: ChatMessage[] };
+export type AgentTraceEntry = {
+  toolCallId: string;
+  toolName: string;
+  product: "Tending" | "Swells" | "Glade" | "Other";
+  kind: "read" | "write" | "review";
+  status: "pending" | "completed" | "declined" | "failed";
+  summary: string;
+};
+
+function traceProduct(name: string): AgentTraceEntry["product"] {
+  if (name.startsWith("tending_")) return "Tending";
+  if (name.startsWith("swells_")) return "Swells";
+  if (name.startsWith("glade_")) return "Glade";
+  return "Other";
+}
+
+function traceKind(name: string): AgentTraceEntry["kind"] {
+  if (name === "glade_draft_decision_candidate") return "review";
+  if (["tending_create_connection", "tending_create_moment", "swells_create_observation"].includes(name)) return "write";
+  return "read";
+}
+
+function traceSummary(name: string, args: Record<string, unknown>) {
+  if (name === "tending_search_connections") return `Search relationships${typeof args.query === "string" && args.query ? `: ${args.query}` : ""}`;
+  if (name === "tending_get_relationship_context") return "Read relationship context";
+  if (name === "tending_create_connection") return `Create relationship: ${String(args.name ?? "")}`;
+  if (name === "tending_create_moment") return "Keep relationship moment";
+  if (name === "tending_recent_moments") return "Read recent relationship moments";
+  if (name === "tending_recent_observations") return "Read recent relationship observations";
+  if (name === "swells_list_spaces") return "List sensing spaces";
+  if (name === "swells_recent_observations") return "Read recent observations";
+  if (name === "swells_signals") return "Read current signals";
+  if (name === "swells_create_observation") return "Keep sensing observation";
+  if (name === "glade_list_decisions") return "Read decisions";
+  if (name === "glade_get_decision") return "Read decision detail";
+  if (name === "glade_list_open_actions") return "Read open actions";
+  if (name === "glade_list_meetings") return "Read meetings";
+  if (name === "glade_list_documents") return "Read documents";
+  if (name === "glade_draft_decision_candidate") return `Review decision candidate: ${String(args.title ?? "")}`;
+  return name;
+}
 
 export class ApprovalRequiredError extends Error {
   constructor(readonly toolCallId: string, readonly toolName: string, readonly args: Record<string, unknown>) {
@@ -73,6 +114,40 @@ export class AttentionAgent {
   }
 
   snapshot(): AgentSnapshot { return { messages: structuredClone(this.messages) }; }
+
+  trace(): AgentTraceEntry[] {
+    const toolResults = new Map<string, string>();
+    for (const message of this.messages) {
+      if (message.role === "tool") toolResults.set(message.tool_call_id, message.content);
+    }
+
+    const entries: AgentTraceEntry[] = [];
+    for (const message of this.messages) {
+      if (message.role !== "assistant" || !message.tool_calls?.length) continue;
+      for (const call of message.tool_calls) {
+        const args = this.parseArgs(call);
+        const result = toolResults.get(call.id);
+        let status: AgentTraceEntry["status"] = "pending";
+        if (result) {
+          try {
+            const parsed = JSON.parse(result) as { declinedByUser?: boolean; error?: unknown };
+            status = parsed.declinedByUser ? "declined" : parsed.error ? "failed" : "completed";
+          } catch {
+            status = "completed";
+          }
+        }
+        entries.push({
+          toolCallId: call.id,
+          toolName: call.function.name,
+          product: traceProduct(call.function.name),
+          kind: traceKind(call.function.name),
+          status,
+          summary: traceSummary(call.function.name, args),
+        });
+      }
+    }
+    return entries;
+  }
 
   async say(userText: string) {
     this.messages.push({ role: "user", content: userText });
