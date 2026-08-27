@@ -68,7 +68,7 @@ function buildServer() {
     "tending_create_connection",
     {
       description:
-        "Create a new Tending relationship only after the user explicitly approves it. Use this when a meaningful person or organisation cannot be resolved to an existing connection.",
+        "Create a new Tending relationship only after the user explicitly approves it. Use this when a meaningful person or organisation cannot be resolved to an existing connection. If approved, use the returned connection ID for any relationship Moment already warranted by the same user input.",
       inputSchema: z.object({
         name: z.string().trim().min(1).max(200),
         type: z.enum(["person", "organisation", "group", "community"]),
