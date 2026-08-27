@@ -2,12 +2,12 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
-type UiMessage = { role: "user" | "assistant"; content: string };
+type UiMessage = { role: "user" | "assistant" | "receipt"; content: string; product?: string; receiptStatus?: "completed" | "declined" | "failed" };
 type SpaceOption = { id: string; name: string; description?: string | null };
 type DecisionCandidate = { title: string; proposedOutcome: string; whyItMayNeedDecision: string; evidence: string[]; suggestedReviewDate?: string };
 type TraceEntry = { toolCallId: string; toolName: string; product: "Tending" | "Swells" | "Glade" | "Other"; kind: "read" | "write" | "review"; status: "pending" | "completed" | "declined" | "failed"; summary: string };
 type PendingApproval = { toolCallId: string; toolName: string; product: string; title: string; detail: string; approveLabel: string; selectedSpaceId?: string; spaceOptions?: SpaceOption[]; reviewOnly?: boolean; decisionCandidate?: DecisionCandidate };
-type Status = { mode: "direct-api" | "remote-mcp"; model: boolean; state: boolean; tending: boolean; swells: boolean; glade: boolean };
+type ActionReceipt = { product: string; status: "completed" | "declined" | "failed"; text: string };\ntype Status = { mode: "direct-api" | "remote-mcp"; model: boolean; state: boolean; tending: boolean; swells: boolean; glade: boolean };
 
 const starters = [
   "What seems to deserve attention across relationships, current signals and open decisions?",
@@ -67,13 +67,16 @@ export default function Home() {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Agent request failed");
     return data as
-      | { type: "message"; message: string; state: string; trace?: TraceEntry[] }
-      | { type: "approval"; pending: PendingApproval; state: string; trace?: TraceEntry[] };
+      | { type: "message"; message: string; state: string; trace?: TraceEntry[]; receipt?: ActionReceipt }
+      | { type: "approval"; pending: PendingApproval; state: string; trace?: TraceEntry[]; receipt?: ActionReceipt };
   }
 
   function absorb(data: Awaited<ReturnType<typeof callAgent>>) {
     setState(data.state);
     setTrace(data.trace ?? []);
+    if (data.receipt) {
+      setMessages((current) => [...current, { role: "receipt", content: data.receipt!.text, product: data.receipt!.product, receiptStatus: data.receipt!.status }]);
+    }
     if (data.type === "approval") {
       setPending(data.pending);
       setApprovalSpaceId(data.pending.selectedSpaceId ?? data.pending.spaceOptions?.[0]?.id ?? "");
@@ -161,8 +164,8 @@ export default function Home() {
 
         {messages.map((message, index) => (
           <article className={`message ${message.role}`} key={index}>
-            <div className="message-label">{message.role === "user" ? "You" : "Attention"}</div>
-            <div className="message-body">{message.content}</div>
+            <div className="message-label">{message.role === "user" ? "You" : message.role === "receipt" ? message.product : "Attention"}</div>
+            <div className={`message-body${message.role === "receipt" ? ` receipt-${message.receiptStatus ?? "completed"}` : ""}`}>{message.content}</div>
           </article>
         ))}
 
@@ -219,8 +222,8 @@ export default function Home() {
               <div className="trace-row" key={entry.toolCallId}>
                 <div className="trace-meta">
                   <span className="trace-product">{entry.product}</span>
-                  <span>{entry.kind}</span>
-                  <span className={`trace-status ${entry.status}`}>{traceStatusLabel(entry)}</span>
+                  <span aria-hidden="true">·</span>
+                  <span className={`trace-status ${entry.status}`}>{traceActionLabel(entry)}</span>
                 </div>
                 <div className="trace-summary">{entry.summary}</div>
               </div>
@@ -245,10 +248,10 @@ export default function Home() {
   );
 }
 
-function traceStatusLabel(entry: TraceEntry) {
-  if (entry.status === "declined") return "declined";
-  if (entry.status === "failed") return "failed";
-  if (entry.status === "pending") return entry.kind === "review" ? "awaiting review" : entry.kind === "write" ? "awaiting approval" : "pending";
+function traceActionLabel(entry: TraceEntry) {
+  if (entry.status === "declined") return `${entry.kind} declined`;
+  if (entry.status === "failed") return `${entry.kind} failed`;
+  if (entry.status === "pending") return entry.kind === "review" ? "awaiting review" : entry.kind === "write" ? "awaiting approval" : "read pending";
   if (entry.kind === "write") return "written";
   if (entry.kind === "review") return "reviewed";
   return "read";
