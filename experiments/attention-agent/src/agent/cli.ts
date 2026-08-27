@@ -1,8 +1,8 @@
 import "dotenv/config";
 import { createInterface } from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
-import { AttentionAgent } from "./model.js";
-import { McpToolHub } from "./mcp.js";
+import { AttentionAgent } from "./model";
+import { McpToolHub } from "./mcp";
 
 const rl = createInterface({ input, output });
 const hub = new McpToolHub();
