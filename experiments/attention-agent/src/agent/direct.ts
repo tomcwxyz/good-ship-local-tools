@@ -7,6 +7,7 @@ const int = (extra: Record<string, unknown> = {}) => ({ type: "integer", ...extr
 
 const tools: AvailableTool[] = [
   { name: "tending_search_connections", description: "Search Tending relationships/connections. Use this first to resolve a person or organisation before reading their relationship context.", inputSchema: obj({ query: str(), limit: int({ minimum: 1, maximum: 200, default: 100 }) }), annotations: { readOnlyHint: true } },
+  { name: "tending_create_connection", description: "Propose creating a new Tending relationship when the user has described a meaningful person or organisation that cannot be resolved to an existing connection. The application requires explicit user approval before this write executes.", inputSchema: obj({ name: str({ minLength: 1, maxLength: 200 }), type: { type: "string", enum: ["person", "organisation", "group", "community"] }, contactDetails: obj({ email: str({ maxLength: 320 }), phone: str({ maxLength: 50 }), website: str({ maxLength: 300 }), location: str({ maxLength: 200 }) }) }, ["name", "type"]), annotations: { readOnlyHint: false } },
   { name: "tending_get_relationship_context", description: "Read the durable Tending context for one resolved connection: its current relationship summary, linked Moments and relationship observations.", inputSchema: obj({ connectionId: str({ format: "uuid" }), limit: int({ minimum: 1, maximum: 100, default: 30 }) }, ["connectionId"]), annotations: { readOnlyHint: true } },
   { name: "tending_recent_moments", description: "Read recent Tending Moments across the organisation.", inputSchema: obj({ limit: int({ minimum: 1, maximum: 100, default: 30 }) }), annotations: { readOnlyHint: true } },
   { name: "tending_recent_observations", description: "Read recent Tending relationship observations across the organisation.", inputSchema: obj({ limit: int({ minimum: 1, maximum: 100, default: 30 }) }), annotations: { readOnlyHint: true } },
@@ -56,6 +57,20 @@ export class DirectToolHub implements ToolHub {
           return [row.name, row.type, row.threadSummary, contact.email, contact.phone, contact.location].filter(Boolean).some((value) => String(value).toLowerCase().includes(query));
         }) : response.data.data;
         return jsonToolResult({ data: rows });
+      }
+      case "tending_create_connection": {
+        const nameValue = s(args.name);
+        const typeValue = s(args.type);
+        if (!nameValue) throw new Error("name is required");
+        if (!typeValue || !["person", "organisation", "group", "community"].includes(typeValue)) throw new Error("valid type is required");
+        const contactDetails = args.contactDetails && typeof args.contactDetails === "object"
+          ? Object.fromEntries(Object.entries(args.contactDetails as Record<string, unknown>).filter(([, value]) => typeof value === "string" && value.trim()))
+          : undefined;
+        const response = await this.tending<Envelope<Record<string, unknown>>>("/api/v1/connections", {
+          method: "POST",
+          body: JSON.stringify({ name: nameValue, type: typeValue, ...(contactDetails && Object.keys(contactDetails).length ? { contactDetails } : {}) }),
+        });
+        return jsonToolResult(response.data);
       }
       case "tending_get_relationship_context": {
         const id = s(args.connectionId);
