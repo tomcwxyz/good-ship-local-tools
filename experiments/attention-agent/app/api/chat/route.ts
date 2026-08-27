@@ -62,6 +62,9 @@ async function approvalReceipt(agent: AttentionAgent, toolCallId: string, approv
   if (entry.toolName === "glade_create_action") {
     return { product: "Glade", status: "completed", text: "Action saved to Glade." };
   }
+  if (entry.toolName === "glade_update_action") {
+    return { product: "Glade", status: "completed", text: "Action updated in Glade." };
+  }
   if (entry.toolName === "glade_draft_decision_candidate") {
     return { product: "Glade", status: "completed", text: "Decision candidate reviewed · nothing saved to Glade." };
   }
@@ -92,6 +95,20 @@ async function approvalCopy(toolName: string, args: Record<string, unknown>, hub
       approveLabel: "Create in Glade",
       ownerName: typeof args.ownerName === "string" ? args.ownerName : "",
       dueDate: typeof args.dueDate === "string" ? args.dueDate : "",
+    };
+  }
+  if (toolName === "glade_update_action") {
+    const changes = [
+      args.description !== undefined ? `Description: ${String(args.description)}` : "",
+      args.ownerName !== undefined ? `Owner: ${args.ownerName === null ? "clear" : String(args.ownerName)}` : "",
+      args.dueDate !== undefined ? `Due: ${args.dueDate === null ? "clear" : String(args.dueDate)}` : "",
+      args.status !== undefined ? `Status: ${String(args.status)}` : "",
+    ].filter(Boolean).join("\n");
+    return {
+      product: "Glade",
+      title: "Update this action?",
+      detail: changes || "Update the selected Glade action.",
+      approveLabel: "Update in Glade",
     };
   }
   if (toolName === "glade_draft_decision_candidate") {
