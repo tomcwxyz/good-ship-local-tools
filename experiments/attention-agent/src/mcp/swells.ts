@@ -68,7 +68,7 @@ function buildServer() {
       description:
         "Create a durable Swells Observation only after the user explicitly chooses that a change, tension, opportunity or repeated pattern is worth noticing. This enters the normal Swells signal pipeline.",
       inputSchema: z.object({
-        spaceId: z.string().uuid().optional(),
+        spaceId: z.string().uuid(),
         text: z.string().trim().min(1).max(5000),
       }),
       annotations: {
