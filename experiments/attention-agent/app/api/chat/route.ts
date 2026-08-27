@@ -28,6 +28,18 @@ function spaceOptions(result: unknown): SpaceOption[] {
 }
 
 async function approvalCopy(toolName: string, args: Record<string, unknown>, hub: ToolHub) {
+  if (toolName === "tending_create_connection") {
+    const type = typeof args.type === "string" ? args.type : "relationship";
+    const contact = args.contactDetails && typeof args.contactDetails === "object"
+      ? Object.values(args.contactDetails as Record<string, unknown>).filter((value) => typeof value === "string" && value.trim()).join(" · ")
+      : "";
+    return {
+      product: "Tending",
+      title: "Create this relationship?",
+      detail: `${String(args.name ?? "")} · ${type}${contact ? `\n${contact}` : ""}`,
+      approveLabel: "Create in Tending",
+    };
+  }
   if (toolName === "tending_create_moment") return { product: "Tending", title: "Keep this relationship moment?", detail: String(args.content ?? ""), approveLabel: "Keep in Tending" };
   if (toolName === "swells_create_observation") {
     let spaces: SpaceOption[] = [];
