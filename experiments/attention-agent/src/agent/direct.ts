@@ -19,6 +19,7 @@ const tools: AvailableTool[] = [
   { name: "glade_list_decisions", description: "List decisions from Glade, the durable governance/decision record.", inputSchema: obj({ status: { type: "string", enum: ["decided", "implemented", "reviewed", "learned"] }, limit: int({ minimum: 1, maximum: 200, default: 50 }) }), annotations: { readOnlyHint: true } },
   { name: "glade_get_decision", description: "Read a Glade decision in detail by its decision number.", inputSchema: obj({ number: int({ minimum: 1 }) }, ["number"]), annotations: { readOnlyHint: true } },
   { name: "glade_list_open_actions", description: "List open Glade actions and commitments.", inputSchema: obj({ limit: int({ minimum: 1, maximum: 200, default: 50 }) }), annotations: { readOnlyHint: true } },
+  { name: "glade_create_action", description: "Propose a private Glade action for a concrete commitment or next step. Use this for something specific that should happen, especially when there is an owner or due date. Do not use it for vague advice or unresolved choices. The application requires explicit user approval before this write executes.", inputSchema: obj({ description: str({ minLength: 1, maxLength: 2000 }), ownerName: str({ maxLength: 255 }), dueDate: str() }, ["description"]), annotations: { readOnlyHint: false } },
   { name: "glade_list_meetings", description: "List recent Glade governance meetings.", inputSchema: obj({ limit: int({ minimum: 1, maximum: 200, default: 30 }) }), annotations: { readOnlyHint: true } },
   { name: "glade_list_documents", description: "List Glade governance documents.", inputSchema: obj({ limit: int({ minimum: 1, maximum: 200, default: 30 }) }), annotations: { readOnlyHint: true } },
   { name: "glade_draft_decision_candidate", description: "Structure something that may deserve to become a Glade decision. This does not save anything.", inputSchema: obj({ title: str({ minLength: 1 }), proposedOutcome: str({ minLength: 1 }), whyItMayNeedDecision: str({ minLength: 1 }), evidence: { type: "array", items: str({ minLength: 1 }), default: [] }, suggestedReviewDate: str() }, ["title", "proposedOutcome", "whyItMayNeedDecision"]), annotations: { readOnlyHint: true } },
@@ -111,6 +112,16 @@ export class DirectToolHub implements ToolHub {
       }
       case "glade_get_decision": return jsonToolResult(await this.glade(`/api/v1/decisions/${n(args.number, 1, Number.MAX_SAFE_INTEGER)}`));
       case "glade_list_open_actions": return jsonToolResult(await this.glade(`/api/v1/actions?status=open&limit=${n(args.limit, 50, 200)}`));
+      case "glade_create_action": {
+        const description = s(args.description);
+        if (!description) throw new Error("description is required");
+        const ownerName = s(args.ownerName);
+        const dueDate = s(args.dueDate);
+        return jsonToolResult(await this.glade("/api/v1/actions", {
+          method: "POST",
+          body: JSON.stringify({ description, ...(ownerName ? { ownerName } : {}), ...(dueDate ? { dueDate } : {}) }),
+        }));
+      }
       case "glade_list_meetings": return jsonToolResult(await this.glade(`/api/v1/meetings?limit=${n(args.limit, 30, 200)}`));
       case "glade_list_documents": return jsonToolResult(await this.glade(`/api/v1/documents?limit=${n(args.limit, 30, 200)}`));
       case "glade_draft_decision_candidate": return jsonToolResult({ saved: false, kind: "glade_decision_candidate", candidate: args, nextStep: "Review with the user, then record through Glade if they explicitly decide to keep it." });
