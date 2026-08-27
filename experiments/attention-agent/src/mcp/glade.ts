@@ -53,6 +53,34 @@ function buildServer() {
   );
 
   server.registerTool(
+    "glade_create_action",
+    {
+      description:
+        "Create a private Glade action only after the user explicitly approves it. Use this for a concrete commitment or next step, not vague advice or unresolved choices.",
+      inputSchema: z.object({
+        description: z.string().trim().min(1).max(2000),
+        ownerName: z.string().trim().max(255).optional(),
+        dueDate: z.string().trim().optional(),
+      }),
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false,
+      },
+    },
+    async ({ description, ownerName, dueDate }) =>
+      jsonToolResult(await api("/api/v1/actions", {
+        method: "POST",
+        body: JSON.stringify({
+          description,
+          ...(ownerName ? { ownerName } : {}),
+          ...(dueDate ? { dueDate } : {}),
+        }),
+      })),
+  );
+
+  server.registerTool(
     "glade_list_meetings",
     {
       description:
