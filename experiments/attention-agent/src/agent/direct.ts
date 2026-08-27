@@ -40,7 +40,7 @@ export class DirectToolHub implements ToolHub {
   private readonly defaultSpace = s(process.env.SWELLS_SPACE_ID);
 
   async connect() { return this.listTools(); }
-  listTools() { return tools.map((tool) => ({ ...tool })); }
+  listTools() { return tools.filter((tool) => tool.name !== "glade_create_action" || process.env.GLADE_ACTION_WRITES_ENABLED === "true").map((tool) => ({ ...tool })); }
   requiresApproval(name: string) { return name === "glade_draft_decision_candidate" || tools.find((tool) => tool.name === name)?.annotations?.readOnlyHint !== true; }
   private space(args: Record<string, unknown>) {
     const id = s(args.spaceId) || this.defaultSpace;
