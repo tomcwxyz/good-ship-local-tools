@@ -8,7 +8,7 @@ type DecisionCandidate = { title: string; proposedOutcome: string; whyItMayNeedD
 type TraceEntry = { toolCallId: string; toolName: string; product: "Tending" | "Swells" | "Glade" | "Calendar" | "Other"; kind: "read" | "write" | "review"; status: "pending" | "completed" | "declined" | "failed"; summary: string };
 type PendingApproval = { toolCallId: string; toolName: string; product: string; title: string; detail: string; approveLabel: string; selectedSpaceId?: string; spaceOptions?: SpaceOption[]; reviewOnly?: boolean; decisionCandidate?: DecisionCandidate; ownerName?: string; dueDate?: string };
 type ActionReceipt = { product: string; status: "completed" | "declined" | "failed"; text: string };
-type Status = { mode: "direct-api" | "remote-mcp"; model: boolean; state: boolean; tending: boolean; swells: boolean; glade: boolean };
+type Status = { mode: "direct-api" | "remote-mcp"; model: boolean; state: boolean; tending: boolean; swells: boolean; glade: boolean; calendar?: boolean; connectionError?: string };
 
 const starters = [
   "What deserves attention today across upcoming work, relationships, current signals and commitments?",
@@ -156,10 +156,11 @@ export default function Home() {
         <StatusPill label="Tending" on={Boolean(status?.tending)} />
         <StatusPill label="Swells" on={Boolean(status?.swells)} />
         <StatusPill label="Glade" on={Boolean(status?.glade)} />
+        <StatusPill label="Calendar" on={Boolean(status?.calendar)} />
         <span className="mode">{status?.mode === "remote-mcp" ? "remote MCP" : "cloud APIs"}</span>
       </section>
 
-      {!configured && <section className="warning"><strong>The cloud pilot is not fully configured.</strong> Check the deployment environment variables before testing.</section>}
+      {!configured && <section className="warning"><strong>The cloud pilot is not fully connected.</strong> {status?.connectionError ? status.connectionError : "Check the connected product capabilities before testing."}</section>}
 
       <section className="conversation">
         {messages.length === 0 && !pending && (
