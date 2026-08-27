@@ -10,7 +10,7 @@ export const maxDuration = 60;
 const requestSchema = z.object({
   message: z.string().trim().min(1).max(12000).optional(),
   state: z.string().min(1).optional(),
-  approval: z.object({ toolCallId: z.string().min(1), approved: z.boolean(), spaceId: z.string().uuid().optional() }).optional(),
+  approval: z.object({ toolCallId: z.string().min(1), approved: z.boolean(), spaceId: z.string().uuid().optional(), ownerName: z.string().max(255).optional(), dueDate: z.string().optional() }).optional(),
 });
 
 type SpaceOption = { id: string; name: string; description?: string | null };
@@ -141,7 +141,11 @@ export async function POST(request: Request) {
       ? await agent.resumeApproval(
           body.approval.toolCallId,
           body.approval.approved,
-          body.approval.spaceId ? { spaceId: body.approval.spaceId } : undefined,
+          {
+            ...(body.approval.spaceId ? { spaceId: body.approval.spaceId } : {}),
+            ...(body.approval.ownerName !== undefined ? { ownerName: body.approval.ownerName } : {}),
+            ...(body.approval.dueDate !== undefined ? { dueDate: body.approval.dueDate } : {}),
+          },
         )
       : await agent.say(body.message!);
     const receipt = body.approval
