@@ -5,6 +5,7 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 type UiMessage = { role: "user" | "assistant"; content: string };
 type SpaceOption = { id: string; name: string; description?: string | null };
 type DecisionCandidate = { title: string; proposedOutcome: string; whyItMayNeedDecision: string; evidence: string[]; suggestedReviewDate?: string };
+type TraceEntry = { toolCallId: string; toolName: string; product: "Tending" | "Swells" | "Glade" | "Other"; kind: "read" | "write" | "review"; status: "pending" | "completed" | "declined" | "failed"; summary: string };
 type PendingApproval = { toolCallId: string; toolName: string; product: string; title: string; detail: string; approveLabel: string; selectedSpaceId?: string; spaceOptions?: SpaceOption[]; reviewOnly?: boolean; decisionCandidate?: DecisionCandidate };
 type Status = { mode: "direct-api" | "remote-mcp"; model: boolean; state: boolean; tending: boolean; swells: boolean; glade: boolean };
 
@@ -22,6 +23,7 @@ export default function Home() {
   const [state, setState] = useState<string>();
   const [pending, setPending] = useState<PendingApproval | null>(null);
   const [approvalSpaceId, setApprovalSpaceId] = useState("");
+  const [trace, setTrace] = useState<TraceEntry[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -65,12 +67,13 @@ export default function Home() {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Agent request failed");
     return data as
-      | { type: "message"; message: string; state: string }
-      | { type: "approval"; pending: PendingApproval; state: string };
+      | { type: "message"; message: string; state: string; trace?: TraceEntry[] }
+      | { type: "approval"; pending: PendingApproval; state: string; trace?: TraceEntry[] };
   }
 
   function absorb(data: Awaited<ReturnType<typeof callAgent>>) {
     setState(data.state);
+    setTrace(data.trace ?? []);
     if (data.type === "approval") {
       setPending(data.pending);
       setApprovalSpaceId(data.pending.selectedSpaceId ?? data.pending.spaceOptions?.[0]?.id ?? "");
@@ -109,7 +112,7 @@ export default function Home() {
   }
 
   function clearConversation() {
-    setMessages([]); setState(undefined); setPending(null); setApprovalSpaceId(""); setError("");
+    setMessages([]); setState(undefined); setPending(null); setApprovalSpaceId(""); setTrace([]); setError("");
   }
 
   if (!key) return (
@@ -208,6 +211,24 @@ export default function Home() {
         <div ref={endRef} />
       </section>
 
+      {trace.length > 0 && (
+        <details className="trace-panel">
+          <summary>Evaluation trace <span>{trace.length} tool step{trace.length === 1 ? "" : "s"}</span></summary>
+          <div className="trace-list">
+            {trace.map((entry) => (
+              <div className="trace-row" key={entry.toolCallId}>
+                <div className="trace-meta">
+                  <span className="trace-product">{entry.product}</span>
+                  <span>{entry.kind}</span>
+                  <span className={`trace-status ${entry.status}`}>{traceStatusLabel(entry)}</span>
+                </div>
+                <div className="trace-summary">{entry.summary}</div>
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
+
       <form className="composer" onSubmit={(event) => { event.preventDefault(); void send(); }}>
         <textarea
           value={input}
@@ -222,6 +243,15 @@ export default function Home() {
       <footer>Durable records stay in their products. Reads can happen automatically; writes and decision candidates stop for review.</footer>
     </main>
   );
+}
+
+function traceStatusLabel(entry: TraceEntry) {
+  if (entry.status === "declined") return "declined";
+  if (entry.status === "failed") return "failed";
+  if (entry.status === "pending") return entry.kind === "review" ? "awaiting review" : entry.kind === "write" ? "awaiting approval" : "pending";
+  if (entry.kind === "write") return "written";
+  if (entry.kind === "review") return "reviewed";
+  return "read";
 }
 
 function StatusPill({ label, on }: { label: string; on: boolean }) {
