@@ -11,7 +11,7 @@ const tools: AvailableTool[] = [
   { name: "tending_recent_moments", description: "Read recent Tending Moments across the organisation.", inputSchema: obj({ limit: int({ minimum: 1, maximum: 100, default: 30 }) }), annotations: { readOnlyHint: true } },
   { name: "tending_recent_observations", description: "Read recent Tending relationship observations across the organisation.", inputSchema: obj({ limit: int({ minimum: 1, maximum: 100, default: 30 }) }), annotations: { readOnlyHint: true } },
   { name: "tending_create_moment", description: "Create a durable Tending Moment only after the user explicitly chooses that relationship learning is worth keeping.", inputSchema: obj({ content: str({ minLength: 1, maxLength: 10000 }), connectionIds: { type: "array", items: str({ format: "uuid" }), default: [] }, eventDate: str({ format: "date-time" }) }, ["content"]), annotations: { readOnlyHint: false } },
-  { name: "swells_list_spaces", description: "List Swells spaces available to the configured pilot user.", inputSchema: obj({}), annotations: { readOnlyHint: true } },
+  { name: "swells_list_spaces", description: "List Swells spaces available to the user represented by the scoped API key.", inputSchema: obj({}), annotations: { readOnlyHint: true } },
   { name: "swells_recent_observations", description: "Read recent human observations from a Swells space as sensing evidence.", inputSchema: obj({ spaceId: str({ format: "uuid" }), limit: int({ minimum: 1, maximum: 100, default: 30 }) }), annotations: { readOnlyHint: true } },
   { name: "swells_signals", description: "Read current Swells signals: patterns assembled from observations.", inputSchema: obj({ spaceId: str({ format: "uuid" }), limit: int({ minimum: 1, maximum: 100, default: 30 }) }), annotations: { readOnlyHint: true } },
   { name: "swells_create_observation", description: "Create a durable Swells Observation only after the user explicitly chooses that a change or pattern is worth noticing.", inputSchema: obj({ spaceId: str({ format: "uuid" }), text: str({ minLength: 1, maxLength: 5000 }) }, ["text"]), annotations: { readOnlyHint: false } },
@@ -33,7 +33,7 @@ const s = (value: unknown) => typeof value === "string" && value.trim() ? value.
 
 export class DirectToolHub implements ToolHub {
   private readonly tending = createApiClient(process.env.TENDING_BASE_URL?.trim() || "http://localhost:3000", requiredEnv("TENDING_API_KEY"), vercelBypassHeaders("TENDING_VERCEL_BYPASS_SECRET"));
-  private readonly swells = createApiClient(process.env.SWELLS_BASE_URL?.trim() || "http://localhost:3001", requiredEnv("SWELLS_AGENT_API_TOKEN"), vercelBypassHeaders("SWELLS_VERCEL_BYPASS_SECRET"));
+  private readonly swells = createApiClient(process.env.SWELLS_BASE_URL?.trim() || "https://swells.app", requiredEnv("SWELLS_API_KEY"));
   private readonly glade = createApiClient(process.env.GLADE_BASE_URL?.trim() || "http://localhost:3002", requiredEnv("GLADE_API_KEY"), vercelBypassHeaders("GLADE_VERCEL_BYPASS_SECRET"));
   private readonly defaultSpace = s(process.env.SWELLS_SPACE_ID);
 
@@ -79,13 +79,13 @@ export class DirectToolHub implements ToolHub {
         const response = await this.tending<Envelope<unknown>>("/api/v1/moments", { method: "POST", body: JSON.stringify({ content, connectionIds, ...(eventDate ? { eventDate } : {}) }) });
         return jsonToolResult(response.data);
       }
-      case "swells_list_spaces": return jsonToolResult(await this.swells("/api/agent/spaces"));
-      case "swells_recent_observations": return jsonToolResult(await this.swells(`/api/agent/observations?spaceId=${this.space(args)}&limit=${n(args.limit, 30, 100)}`));
-      case "swells_signals": return jsonToolResult(await this.swells(`/api/agent/signals?spaceId=${this.space(args)}&limit=${n(args.limit, 30, 100)}`));
+      case "swells_list_spaces": return jsonToolResult(await this.swells("/api/v1/spaces"));
+      case "swells_recent_observations": return jsonToolResult(await this.swells(`/api/v1/observations?spaceId=${this.space(args)}&limit=${n(args.limit, 30, 100)}`));
+      case "swells_signals": return jsonToolResult(await this.swells(`/api/v1/signals?spaceId=${this.space(args)}&limit=${n(args.limit, 30, 100)}`));
       case "swells_create_observation": {
         const text = s(args.text);
         if (!text) throw new Error("text is required");
-        return jsonToolResult(await this.swells("/api/agent/observations", { method: "POST", body: JSON.stringify({ spaceId: this.space(args), text }) }));
+        return jsonToolResult(await this.swells("/api/v1/observations", { method: "POST", body: JSON.stringify({ spaceId: this.space(args), text }) }));
       }
       case "glade_list_decisions": {
         const params = new URLSearchParams({ limit: String(n(args.limit, 50, 200)) });
