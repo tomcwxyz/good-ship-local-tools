@@ -85,7 +85,8 @@ function traceSummary(name: string, args: Record<string, unknown>) {
   if (name === "tending_create_moment") return "Keep relationship moment";
   if (name === "tending_recent_moments") return "Read recent relationship moments";
   if (name === "tending_recent_observations") return "Read recent relationship observations";
-  if (name === "calendar_find_events") return `Read calendar${typeof args.query === "string" && args.query ? `: ${args.query}` : ""}`;\n  if (name === "swells_list_spaces") return "List sensing spaces";
+  if (name === "calendar_find_events") return `Read calendar${typeof args.query === "string" && args.query ? `: ${args.query}` : ""}`;
+  if (name === "swells_list_spaces") return "List sensing spaces";
   if (name === "swells_recent_observations") return "Read recent observations";
   if (name === "swells_signals") return "Read current signals";
   if (name === "swells_create_observation") return "Keep sensing observation";
