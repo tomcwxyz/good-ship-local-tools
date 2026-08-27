@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 type UiMessage = { role: "user" | "assistant"; content: string };
 type SpaceOption = { id: string; name: string; description?: string | null };
-type PendingApproval = { toolCallId: string; toolName: string; product: string; title: string; detail: string; approveLabel: string; selectedSpaceId?: string; spaceOptions?: SpaceOption[] };
+type DecisionCandidate = { title: string; proposedOutcome: string; whyItMayNeedDecision: string; evidence: string[]; suggestedReviewDate?: string };\ntype PendingApproval = { toolCallId: string; toolName: string; product: string; title: string; detail: string; approveLabel: string; selectedSpaceId?: string; spaceOptions?: SpaceOption[]; reviewOnly?: boolean; decisionCandidate?: DecisionCandidate };
 type Status = { mode: "direct-api" | "remote-mcp"; model: boolean; state: boolean; tending: boolean; swells: boolean; glade: boolean };
 
 const starters = [
@@ -166,6 +166,19 @@ export default function Home() {
           <article className="approval">
             <div className="approval-product">{pending.product}</div>
             <h3>{pending.title}</h3><p>{pending.detail}</p>
+            {pending.toolName === "glade_draft_decision_candidate" && pending.decisionCandidate ? (
+              <div className="decision-candidate">
+                <div><span>Decision</span><strong>{pending.decisionCandidate.title}</strong></div>
+                <div><span>Proposed outcome</span><p>{pending.decisionCandidate.proposedOutcome}</p></div>
+                <div><span>Why this needs a decision</span><p>{pending.decisionCandidate.whyItMayNeedDecision}</p></div>
+                {pending.decisionCandidate.evidence.length ? (
+                  <div><span>Evidence</span><ul>{pending.decisionCandidate.evidence.map((item, index) => <li key={index}>{item}</li>)}</ul></div>
+                ) : null}
+                {pending.decisionCandidate.suggestedReviewDate ? (
+                  <div><span>Suggested review</span><p>{pending.decisionCandidate.suggestedReviewDate}</p></div>
+                ) : null}
+              </div>
+            ) : null}
             {pending.toolName === "swells_create_observation" && pending.spaceOptions?.length ? (
               <div className="approval-destination">
                 <label htmlFor="approval-space">Keep in space</label>
@@ -205,7 +218,7 @@ export default function Home() {
         />
         <button type="submit" disabled={busy || Boolean(pending) || !input.trim()}>Send</button>
       </form>
-      <footer>Durable records stay in their products. Reads can happen automatically; writes require your approval.</footer>
+      <footer>Durable records stay in their products. Reads can happen automatically; writes and decision candidates stop for review.</footer>
     </main>
   );
 }
