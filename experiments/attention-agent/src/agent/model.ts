@@ -1,5 +1,5 @@
-import { optionalEnv, requiredEnv } from "../lib/http.js";
-import type { ToolHub } from "./hub.js";
+import { optionalEnv, requiredEnv } from "../lib/http";
+import type { ToolHub } from "./hub";
 
 const SYSTEM_PROMPT = `You are an attention agent: one reasoning layer across several distinct tools and memories.
 
