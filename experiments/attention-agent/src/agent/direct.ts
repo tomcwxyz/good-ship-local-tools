@@ -12,6 +12,7 @@ const tools: AvailableTool[] = [
   { name: "tending_recent_moments", description: "Read recent Tending Moments across the organisation.", inputSchema: obj({ limit: int({ minimum: 1, maximum: 100, default: 30 }) }), annotations: { readOnlyHint: true } },
   { name: "tending_recent_observations", description: "Read recent Tending relationship observations across the organisation.", inputSchema: obj({ limit: int({ minimum: 1, maximum: 100, default: 30 }) }), annotations: { readOnlyHint: true } },
   { name: "tending_create_moment", description: "Create a durable Tending Moment only after the user explicitly chooses that relationship learning is worth keeping.", inputSchema: obj({ content: str({ minLength: 1, maxLength: 10000 }), connectionIds: { type: "array", items: str({ format: "uuid" }), default: [] }, eventDate: str({ format: "date-time" }) }, ["content"]), annotations: { readOnlyHint: false } },
+  { name: "calendar_find_events", description: "Read a bounded window of the current user's connected calendar as minimised external context. Use for upcoming meetings, preparation, recent meeting context, or finding an event by person/title. Calendar events are evidence, not durable organisational memory.", inputSchema: obj({ from: str(), to: str(), query: str(), limit: int({ minimum: 1, maximum: 100, default: 30 }) }), annotations: { readOnlyHint: true } },
   { name: "swells_list_spaces", description: "List Swells spaces available to the user represented by the scoped API key.", inputSchema: obj({}), annotations: { readOnlyHint: true } },
   { name: "swells_recent_observations", description: "Read recent human observations from a Swells space as sensing evidence.", inputSchema: obj({ spaceId: str({ format: "uuid" }), limit: int({ minimum: 1, maximum: 100, default: 30 }) }), annotations: { readOnlyHint: true } },
   { name: "swells_signals", description: "Read current Swells signals: patterns assembled from observations.", inputSchema: obj({ spaceId: str({ format: "uuid" }), limit: int({ minimum: 1, maximum: 100, default: 30 }) }), annotations: { readOnlyHint: true } },
@@ -93,6 +94,14 @@ export class DirectToolHub implements ToolHub {
         const connectionIds = Array.isArray(args.connectionIds) ? args.connectionIds.filter((value): value is string => typeof value === "string") : [];
         const eventDate = s(args.eventDate);
         const response = await this.tending<Envelope<unknown>>("/api/v1/moments", { method: "POST", body: JSON.stringify({ content, connectionIds, ...(eventDate ? { eventDate } : {}) }) });
+        return jsonToolResult(response.data);
+      }
+      case "calendar_find_events": {
+        const params = new URLSearchParams({ limit: String(n(args.limit, 30, 100)) });
+        const from = s(args.from); if (from) params.set("from", from);
+        const to = s(args.to); if (to) params.set("to", to);
+        const query = s(args.query); if (query) params.set("query", query);
+        const response = await this.tending<Envelope<Record<string, unknown>>>(`/api/v1/calendar/events?${params}`);
         return jsonToolResult(response.data);
       }
       case "swells_list_spaces": return jsonToolResult(await this.swells("/api/v1/spaces"));
