@@ -24,7 +24,9 @@ export default function Home() {
   const [state, setState] = useState<string>();
   const [pending, setPending] = useState<PendingApproval | null>(null);
   const [approvalSpaceId, setApprovalSpaceId] = useState("");
-  const [trace, setTrace] = useState<TraceEntry[]>([]);\n  const [approvalOwnerName, setApprovalOwnerName] = useState("");\n  const [approvalDueDate, setApprovalDueDate] = useState("");
+  const [trace, setTrace] = useState<TraceEntry[]>([]);
+  const [approvalOwnerName, setApprovalOwnerName] = useState("");
+  const [approvalDueDate, setApprovalDueDate] = useState("");
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
