@@ -132,7 +132,7 @@ export class AttentionAgent {
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: "POST",
       headers: { "content-type": "application/json", ...(this.apiKey ? { authorization: `Bearer ${this.apiKey}` } : {}) },
-      body: JSON.stringify({ model: this.model, messages: this.messages, tools, tool_choice: "auto", stream: false }),
+      body: JSON.stringify({ model: this.model, messages: this.messages, tools, tool_choice: "auto", reasoning_effort: "none", stream: false }),
     });
     const raw = await response.text();
     let data: ChatResponse;
