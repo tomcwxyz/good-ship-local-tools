@@ -14,7 +14,7 @@ const tools: AvailableTool[] = [
   { name: "swells_list_spaces", description: "List Swells spaces available to the user represented by the scoped API key.", inputSchema: obj({}), annotations: { readOnlyHint: true } },
   { name: "swells_recent_observations", description: "Read recent human observations from a Swells space as sensing evidence.", inputSchema: obj({ spaceId: str({ format: "uuid" }), limit: int({ minimum: 1, maximum: 100, default: 30 }) }), annotations: { readOnlyHint: true } },
   { name: "swells_signals", description: "Read current Swells signals: patterns assembled from observations.", inputSchema: obj({ spaceId: str({ format: "uuid" }), limit: int({ minimum: 1, maximum: 100, default: 30 }) }), annotations: { readOnlyHint: true } },
-  { name: "swells_create_observation", description: "Propose a durable Swells Observation when something seems worth noticing. Observations may be tentative or second-hand if provenance and uncertainty are preserved. The application requires explicit user approval before this write executes.", inputSchema: obj({ spaceId: str({ format: "uuid" }), text: str({ minLength: 1, maxLength: 5000 }) }, ["text"]), annotations: { readOnlyHint: false } },
+  { name: "swells_create_observation", description: "Propose a durable Swells Observation in an explicit Swells space when something seems worth noticing. Observations may be tentative or second-hand if provenance and uncertainty are preserved. The application requires explicit user approval before this write executes.", inputSchema: obj({ spaceId: str({ format: "uuid" }), text: str({ minLength: 1, maxLength: 5000 }) }, ["spaceId", "text"]), annotations: { readOnlyHint: false } },
   { name: "glade_list_decisions", description: "List decisions from Glade, the durable governance/decision record.", inputSchema: obj({ status: { type: "string", enum: ["decided", "implemented", "reviewed", "learned"] }, limit: int({ minimum: 1, maximum: 200, default: 50 }) }), annotations: { readOnlyHint: true } },
   { name: "glade_get_decision", description: "Read a Glade decision in detail by its decision number.", inputSchema: obj({ number: int({ minimum: 1 }) }, ["number"]), annotations: { readOnlyHint: true } },
   { name: "glade_list_open_actions", description: "List open Glade actions and commitments.", inputSchema: obj({ limit: int({ minimum: 1, maximum: 200, default: 50 }) }), annotations: { readOnlyHint: true } },
@@ -84,8 +84,10 @@ export class DirectToolHub implements ToolHub {
       case "swells_signals": return jsonToolResult(await this.swells(`/api/v1/signals?spaceId=${this.space(args)}&limit=${n(args.limit, 30, 100)}`));
       case "swells_create_observation": {
         const text = s(args.text);
+        const spaceId = s(args.spaceId);
         if (!text) throw new Error("text is required");
-        return jsonToolResult(await this.swells("/api/v1/observations", { method: "POST", body: JSON.stringify({ spaceId: this.space(args), text }) }));
+        if (!spaceId) throw new Error("spaceId is required for Swells writes");
+        return jsonToolResult(await this.swells("/api/v1/observations", { method: "POST", body: JSON.stringify({ spaceId, text }) }));
       }
       case "glade_list_decisions": {
         const params = new URLSearchParams({ limit: String(n(args.limit, 50, 200)) });
