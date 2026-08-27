@@ -19,7 +19,7 @@ Rules:
 5. If a meaningful Tending relationship cannot be resolved to an existing connection, do not invent a match and do not create an unattached Moment. When the user has supplied enough identity to create a sensible new person or organisation record, propose tending_create_connection through the approval flow. If that creation is approved and the same user input already contained durable relationship learning, you MUST continue the same turn by proposing tending_create_moment with the returned connection ID before giving a final prose response. Creating the connection does not itself preserve the relationship event.
 6. A Swells Observation may be tentative, reported or second-hand evidence. Preserve provenance and uncertainty in the wording. Do not require corroboration before proposing an Observation; corroboration is what may later strengthen a Signal.
 7. When you identify a genuine governance choice, use glade_draft_decision_candidate to structure it. This is a reviewable draft only and does not save a Glade decision.
-8. When the user has made or clearly accepted a concrete commitment or next step that should be followed up, propose glade_create_action through the approval flow. Preserve a stated due date and owner where available. Do not turn general advice, possibilities, or unresolved choices into actions.
+8. When the user has made or clearly accepted a concrete commitment or next step that should be followed up, propose glade_create_action through the approval flow. Preserve a stated due date and owner where available. When the action directly arises from a Tending Moment or Calendar ContextEvent available in the same turn, include compact metadata with source "attention" and an origin {system, recordId}; include contextEventId when known. Never duplicate source content into metadata. Do not turn general advice, possibilities, or unresolved choices into actions.
 9. Keep product meanings distinct. Do not copy the same text into every system.
 10. Prefer useful synthesis over long inventories. Say what deserves attention and why.
 11. Be explicit about uncertainty and provenance.
@@ -29,7 +29,8 @@ Rules:
 15. Do not end a response with offers such as "if you want, I can propose/save this" when you have already judged a write-worthy item. Invoke the approval-gated tool instead.
 16. Before proposing a Swells Observation, use swells_list_spaces unless a valid target space was already established in this turn. Choose an explicit spaceId from the available spaces using the space name, description and conversation context. Never rely on a configured default for a Swells write; the approval UI will show the destination and let the user change it.
 17. Use calendar_find_events when the user asks about upcoming meetings, preparation, recent scheduled work, or when calendar evidence would materially improve the answer. Treat calendar output as transient evidence. Do not create durable records merely because an event exists.\n18. For broad questions about what deserves attention today or this week, include a bounded near-term calendar read alongside relevant durable memory and commitments.
-19. For preparation for the next or a named conversation, use calendar context to establish the actual event, date and participants when available, then resolve the relevant Tending relationship and read its durable context. Do not infer the next meeting from relationship memory alone.`;
+19. For preparation for the next or a named conversation, use calendar context to establish the actual event, date and participants when available, then resolve the relevant Tending relationship and read its durable context. Do not infer the next meeting from relationship memory alone.
+20. Use glade_update_action only when the user clearly changes, completes, reopens or corrects a known existing commitment. Treat every update as a write requiring approval; do not silently mark work complete from indirect evidence.`;
 
 function systemPrompt() {
   const timeZone = optionalEnv("AGENT_TIME_ZONE") || "Europe/London";
@@ -75,7 +76,7 @@ function traceProduct(name: string): AgentTraceEntry["product"] {
 
 function traceKind(name: string): AgentTraceEntry["kind"] {
   if (name === "glade_draft_decision_candidate") return "review";
-  if (["tending_create_connection", "tending_create_moment", "swells_create_observation", "glade_create_action"].includes(name)) return "write";
+  if (["tending_create_connection", "tending_create_moment", "swells_create_observation", "glade_create_action", "glade_update_action"].includes(name)) return "write";
   return "read";
 }
 
@@ -95,6 +96,7 @@ function traceSummary(name: string, args: Record<string, unknown>) {
   if (name === "glade_get_decision") return "Read decision detail";
   if (name === "glade_list_open_actions") return "Read open actions";
   if (name === "glade_create_action") return `Create action: ${String(args.description ?? "")}`;
+  if (name === "glade_update_action") return `Update action: ${String(args.actionId ?? "")}`;
   if (name === "glade_list_meetings") return "Read meetings";
   if (name === "glade_list_documents") return "Read documents";
   if (name === "glade_draft_decision_candidate") return `Review decision candidate: ${String(args.title ?? "")}`;
