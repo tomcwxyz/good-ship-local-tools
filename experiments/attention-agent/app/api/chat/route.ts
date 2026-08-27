@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { ApprovalRequiredError, AttentionAgent } from "../../../src/agent/model";\nimport type { ToolHub } from "../../../src/agent/hub";
+import { ApprovalRequiredError, AttentionAgent } from "../../../src/agent/model";
+import type { ToolHub } from "../../../src/agent/hub";
 import { cloudMode, createCloudHub, decryptState, encryptState, isAuthorised } from "../../../src/web/cloud";
 
 export const runtime = "nodejs";
