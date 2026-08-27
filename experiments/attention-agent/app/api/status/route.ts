@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { cloudMode, isAuthorised } from "../../../src/web/cloud.js";
+import { cloudMode, isAuthorised } from "../../../src/web/cloud";
 
 export const runtime = "nodejs";
 const has = (...names: string[]) => names.every((name) => Boolean(process.env[name]?.trim()));
