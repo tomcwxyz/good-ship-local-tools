@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 type UiMessage = { role: "user" | "assistant"; content: string };
-type PendingApproval = { toolCallId: string; toolName: string; product: string; title: string; detail: string; approveLabel: string };
+type SpaceOption = { id: string; name: string; description?: string | null };\ntype PendingApproval = { toolCallId: string; toolName: string; product: string; title: string; detail: string; approveLabel: string; selectedSpaceId?: string; spaceOptions?: SpaceOption[] };
 type Status = { mode: "direct-api" | "remote-mcp"; model: boolean; state: boolean; tending: boolean; swells: boolean; glade: boolean };
 
 const starters = [
@@ -18,7 +18,7 @@ export default function Home() {
   const [status, setStatus] = useState<Status | null>(null);
   const [messages, setMessages] = useState<UiMessage[]>([]);
   const [state, setState] = useState<string>();
-  const [pending, setPending] = useState<PendingApproval | null>(null);
+  const [pending, setPending] = useState<PendingApproval | null>(null);\n  const [approvalSpaceId, setApprovalSpaceId] = useState("");
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -68,8 +68,13 @@ export default function Home() {
 
   function absorb(data: Awaited<ReturnType<typeof callAgent>>) {
     setState(data.state);
-    if (data.type === "approval") { setPending(data.pending); return; }
+    if (data.type === "approval") {
+      setPending(data.pending);
+      setApprovalSpaceId(data.pending.selectedSpaceId ?? data.pending.spaceOptions?.[0]?.id ?? "");
+      return;
+    }
     setPending(null);
+    setApprovalSpaceId("");
     setMessages((current) => [...current, { role: "assistant", content: data.message }]);
   }
 
@@ -86,13 +91,22 @@ export default function Home() {
   async function resolveApproval(approved: boolean) {
     if (!pending || !state || busy) return;
     setBusy(true); setError("");
-    try { absorb(await callAgent({ state, approval: { toolCallId: pending.toolCallId, approved } })); }
+    try {
+      absorb(await callAgent({
+        state,
+        approval: {
+          toolCallId: pending.toolCallId,
+          approved,
+          ...(approved && pending.toolName === "swells_create_observation" && approvalSpaceId ? { spaceId: approvalSpaceId } : {}),
+        },
+      }));
+    }
     catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)); }
     finally { setBusy(false); }
   }
 
   function clearConversation() {
-    setMessages([]); setState(undefined); setPending(null); setError("");
+    setMessages([]); setState(undefined); setPending(null); setApprovalSpaceId(""); setError("");
   }
 
   if (!key) return (
@@ -150,6 +164,22 @@ export default function Home() {
           <article className="approval">
             <div className="approval-product">{pending.product}</div>
             <h3>{pending.title}</h3><p>{pending.detail}</p>
+            {pending.toolName === "swells_create_observation" && pending.spaceOptions?.length ? (
+              <div className="approval-destination">
+                <label htmlFor="approval-space">Keep in space</label>
+                <select
+                  id="approval-space"
+                  value={approvalSpaceId}
+                  onChange={(event) => setApprovalSpaceId(event.target.value)}
+                  disabled={busy}
+                >
+                  {pending.spaceOptions.map((space) => <option key={space.id} value={space.id}>{space.name}</option>)}
+                </select>
+                {pending.spaceOptions.find((space) => space.id === approvalSpaceId)?.description ? (
+                  <p className="approval-destination-note">{pending.spaceOptions.find((space) => space.id === approvalSpaceId)?.description}</p>
+                ) : null}
+              </div>
+            ) : null}
             <div className="approval-actions">
               <button className="primary" disabled={busy} onClick={() => void resolveApproval(true)}>{pending.approveLabel}</button>
               <button className="secondary" disabled={busy} onClick={() => void resolveApproval(false)}>Not now</button>
