@@ -6,7 +6,7 @@ type UiMessage = { role: "user" | "assistant" | "receipt"; content: string; prod
 type SpaceOption = { id: string; name: string; description?: string | null };
 type DecisionCandidate = { title: string; proposedOutcome: string; whyItMayNeedDecision: string; evidence: string[]; suggestedReviewDate?: string };
 type TraceEntry = { toolCallId: string; toolName: string; product: "Tending" | "Swells" | "Glade" | "Other"; kind: "read" | "write" | "review"; status: "pending" | "completed" | "declined" | "failed"; summary: string };
-type PendingApproval = { toolCallId: string; toolName: string; product: string; title: string; detail: string; approveLabel: string; selectedSpaceId?: string; spaceOptions?: SpaceOption[]; reviewOnly?: boolean; decisionCandidate?: DecisionCandidate };
+type PendingApproval = { toolCallId: string; toolName: string; product: string; title: string; detail: string; approveLabel: string; selectedSpaceId?: string; spaceOptions?: SpaceOption[]; reviewOnly?: boolean; decisionCandidate?: DecisionCandidate; ownerName?: string; dueDate?: string };
 type ActionReceipt = { product: string; status: "completed" | "declined" | "failed"; text: string };
 type Status = { mode: "direct-api" | "remote-mcp"; model: boolean; state: boolean; tending: boolean; swells: boolean; glade: boolean };
 
@@ -24,7 +24,7 @@ export default function Home() {
   const [state, setState] = useState<string>();
   const [pending, setPending] = useState<PendingApproval | null>(null);
   const [approvalSpaceId, setApprovalSpaceId] = useState("");
-  const [trace, setTrace] = useState<TraceEntry[]>([]);
+  const [trace, setTrace] = useState<TraceEntry[]>([]);\n  const [approvalOwnerName, setApprovalOwnerName] = useState("");\n  const [approvalDueDate, setApprovalDueDate] = useState("");
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -81,10 +81,14 @@ export default function Home() {
     if (data.type === "approval") {
       setPending(data.pending);
       setApprovalSpaceId(data.pending.selectedSpaceId ?? data.pending.spaceOptions?.[0]?.id ?? "");
+      setApprovalOwnerName(data.pending.ownerName ?? "");
+      setApprovalDueDate(data.pending.dueDate ?? "");
       return;
     }
     setPending(null);
     setApprovalSpaceId("");
+    setApprovalOwnerName("");
+    setApprovalDueDate("");
     setMessages((current) => [...current, { role: "assistant", content: data.message }]);
   }
 
@@ -108,6 +112,7 @@ export default function Home() {
           toolCallId: pending.toolCallId,
           approved,
           ...(approved && pending.toolName === "swells_create_observation" && approvalSpaceId ? { spaceId: approvalSpaceId } : {}),
+          ...(approved && pending.toolName === "glade_create_action" ? { ownerName: approvalOwnerName, dueDate: approvalDueDate } : {}),
         },
       }));
     }
@@ -116,7 +121,7 @@ export default function Home() {
   }
 
   function clearConversation() {
-    setMessages([]); setState(undefined); setPending(null); setApprovalSpaceId(""); setTrace([]); setError("");
+    setMessages([]); setState(undefined); setPending(null); setApprovalSpaceId(""); setApprovalOwnerName(""); setApprovalDueDate(""); setTrace([]); setError("");
   }
 
   if (!key) return (
@@ -185,6 +190,18 @@ export default function Home() {
                 {pending.decisionCandidate.suggestedReviewDate ? (
                   <div><span>Suggested review</span><p>{pending.decisionCandidate.suggestedReviewDate}</p></div>
                 ) : null}
+              </div>
+            ) : null}
+            {pending.toolName === "glade_create_action" ? (
+              <div className="approval-action-fields">
+                <div>
+                  <label htmlFor="approval-owner">Owner</label>
+                  <input id="approval-owner" value={approvalOwnerName} onChange={(event) => setApprovalOwnerName(event.target.value)} placeholder="Optional" disabled={busy} />
+                </div>
+                <div>
+                  <label htmlFor="approval-due-date">Due date</label>
+                  <input id="approval-due-date" type="date" value={approvalDueDate ? approvalDueDate.slice(0, 10) : ""} onChange={(event) => setApprovalDueDate(event.target.value)} disabled={busy} />
+                </div>
               </div>
             ) : null}
             {pending.toolName === "swells_create_observation" && pending.spaceOptions?.length ? (
