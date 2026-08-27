@@ -2,7 +2,7 @@ import "dotenv/config";
 import { McpServer } from "@modelcontextprotocol/server";
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
 import * as z from "zod/v4";
-import { createApiClient, jsonToolResult, requiredEnv, vercelBypassHeaders } from "../lib/http.js";
+import { createApiClient, jsonToolResult, requiredEnv, vercelBypassHeaders } from "../lib/http";
 
 const baseUrl = process.env.TENDING_BASE_URL?.trim() || "http://localhost:3000";
 const api = createApiClient(baseUrl, requiredEnv("TENDING_API_KEY"), vercelBypassHeaders("TENDING_VERCEL_BYPASS_SECRET"));
