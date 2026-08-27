@@ -8,7 +8,9 @@ const remoteNames = ["TENDING_MCP_URL", "SWELLS_MCP_URL", "GLADE_MCP_URL"] as co
 
 export function isAuthorised(request: Request) {
   const expected = process.env.PILOT_ACCESS_KEY?.trim();
-  const supplied = request.headers.get("x-pilot-key")?.trim();
+  const bearer = request.headers.get("authorization")?.trim();
+  const supplied = request.headers.get("x-pilot-key")?.trim()
+    || (bearer?.toLowerCase().startsWith("bearer ") ? bearer.slice(7).trim() : undefined);
   if (!expected || !supplied) return false;
   const a = Buffer.from(expected); const b = Buffer.from(supplied);
   return a.length === b.length && timingSafeEqual(a, b);
