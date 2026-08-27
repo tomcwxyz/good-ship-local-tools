@@ -9,12 +9,42 @@ type ProductConfig = {
   script: URL;
   remoteUrlEnv: string;
   remoteTokenEnv: string;
+  baseUrlEnv: string;
+  apiKeyEnv: string;
+  defaultBaseUrl: string;
+  bypassEnv?: string;
 };
 
 const configs: ProductConfig[] = [
-  { product: "tending", script: new URL("../mcp/tending.ts", import.meta.url), remoteUrlEnv: "TENDING_MCP_URL", remoteTokenEnv: "TENDING_MCP_BEARER_TOKEN" },
-  { product: "swells", script: new URL("../mcp/swells.ts", import.meta.url), remoteUrlEnv: "SWELLS_MCP_URL", remoteTokenEnv: "SWELLS_MCP_BEARER_TOKEN" },
-  { product: "glade", script: new URL("../mcp/glade.ts", import.meta.url), remoteUrlEnv: "GLADE_MCP_URL", remoteTokenEnv: "GLADE_MCP_BEARER_TOKEN" },
+  {
+    product: "tending",
+    script: new URL("../mcp/tending.ts", import.meta.url),
+    remoteUrlEnv: "TENDING_MCP_URL",
+    remoteTokenEnv: "TENDING_MCP_BEARER_TOKEN",
+    baseUrlEnv: "TENDING_BASE_URL",
+    apiKeyEnv: "TENDING_API_KEY",
+    defaultBaseUrl: "http://localhost:3000",
+    bypassEnv: "TENDING_VERCEL_BYPASS_SECRET",
+  },
+  {
+    product: "swells",
+    script: new URL("../mcp/swells.ts", import.meta.url),
+    remoteUrlEnv: "SWELLS_MCP_URL",
+    remoteTokenEnv: "SWELLS_MCP_BEARER_TOKEN",
+    baseUrlEnv: "SWELLS_BASE_URL",
+    apiKeyEnv: "SWELLS_API_KEY",
+    defaultBaseUrl: "https://swells.app",
+  },
+  {
+    product: "glade",
+    script: new URL("../mcp/glade.ts", import.meta.url),
+    remoteUrlEnv: "GLADE_MCP_URL",
+    remoteTokenEnv: "GLADE_MCP_BEARER_TOKEN",
+    baseUrlEnv: "GLADE_BASE_URL",
+    apiKeyEnv: "GLADE_API_KEY",
+    defaultBaseUrl: "https://ourglade.app",
+    bypassEnv: "GLADE_VERCEL_BYPASS_SECRET",
+  },
 ];
 
 function inheritedEnv(): Record<string, string> {
@@ -26,7 +56,7 @@ export class McpToolHub implements ToolHub {
   private owners = new Map<string, Client>();
   private tools: AvailableTool[] = [];
 
-  constructor(private readonly options: { allowStdio?: boolean } = {}) {}
+  constructor(private readonly options: { allowStdio?: boolean; remoteDefaults?: boolean } = {}) {}
 
   async connect() {
     for (const config of configs) {
@@ -34,12 +64,20 @@ export class McpToolHub implements ToolHub {
         { name: `attention-agent-${config.product}`, version: "0.2.0" },
         { versionNegotiation: { mode: "auto" } },
       );
-      const remoteUrl = optionalEnv(config.remoteUrlEnv);
+      const explicitRemoteUrl = optionalEnv(config.remoteUrlEnv);
+      const baseUrl = optionalEnv(config.baseUrlEnv) || config.defaultBaseUrl;
+      const remoteUrl = explicitRemoteUrl
+        || (this.options.remoteDefaults ? `${baseUrl.replace(/\/$/, "")}/mcp` : undefined);
       if (remoteUrl) {
-        const bearer = optionalEnv(config.remoteTokenEnv);
+        const bearer = optionalEnv(config.remoteTokenEnv)
+          || (this.options.remoteDefaults ? optionalEnv(config.apiKeyEnv) : undefined);
+        const bypass = config.bypassEnv ? optionalEnv(config.bypassEnv) : undefined;
+        const headers: Record<string, string> = {};
+        if (bearer) headers.authorization = `Bearer ${bearer}`;
+        if (bypass) headers["x-vercel-protection-bypass"] = bypass;
         await client.connect(new StreamableHTTPClientTransport(
           new URL(remoteUrl),
-          bearer ? { requestInit: { headers: { authorization: `Bearer ${bearer}` } } } : undefined,
+          Object.keys(headers).length ? { requestInit: { headers } } : undefined,
         ));
       } else {
         if (this.options.allowStdio === false) throw new Error(`${config.remoteUrlEnv} is required when stdio MCP is disabled`);
