@@ -13,7 +13,7 @@ const requestSchema = z.object({
   approval: z.object({ toolCallId: z.string().min(1), approved: z.boolean(), spaceId: z.string().uuid().optional() }).optional(),
 });
 
-type SpaceOption = { id: string; name: string; description?: string | null };
+type SpaceOption = { id: string; name: string; description?: string | null };\ntype ActionReceipt = { product: string; status: "completed" | "declined" | "failed"; text: string };
 
 function spaceOptions(result: unknown): SpaceOption[] {
   const structured = result && typeof result === "object" ? (result as { structuredContent?: unknown }).structuredContent : undefined;
@@ -25,6 +25,43 @@ function spaceOptions(result: unknown): SpaceOption[] {
     if (typeof value.id !== "string" || typeof value.name !== "string") return [];
     return [{ id: value.id, name: value.name, description: typeof value.description === "string" ? value.description : null }];
   });
+}
+
+async function approvalReceipt(agent: AttentionAgent, toolCallId: string, approved: boolean, selectedSpaceId: string | undefined, hub: ToolHub): Promise<ActionReceipt | undefined> {
+  const entry = agent.trace().find((candidate) => candidate.toolCallId === toolCallId);
+  if (!entry) return undefined;
+
+  if (!approved || entry.status === "declined") {
+    return { product: entry.product, status: "declined", text: entry.kind === "review" ? "Decision candidate not carried forward." : "Not saved." };
+  }
+  if (entry.status === "failed") {
+    return { product: entry.product, status: "failed", text: `${entry.product} action failed. Nothing was saved.` };
+  }
+
+  if (entry.toolName === "tending_create_connection") {
+    return { product: "Tending", status: "completed", text: "Relationship created in Tending." };
+  }
+  if (entry.toolName === "tending_create_moment") {
+    return { product: "Tending", status: "completed", text: "Relationship moment saved to Tending." };
+  }
+  if (entry.toolName === "swells_create_observation") {
+    let spaceName = "";
+    if (selectedSpaceId) {
+      try {
+        const spaces = spaceOptions(await hub.callTool("swells_list_spaces", {}));
+        spaceName = spaces.find((space) => space.id === selectedSpaceId)?.name ?? "";
+      } catch {}
+    }
+    return {
+      product: "Swells",
+      status: "completed",
+      text: `Observation saved to Swells${spaceName ? ` · ${spaceName}` : ""}.`,
+    };
+  }
+  if (entry.toolName === "glade_draft_decision_candidate") {
+    return { product: "Glade", status: "completed", text: "Decision candidate reviewed · nothing saved to Glade." };
+  }
+  return { product: entry.product, status: "completed", text: "Action completed." };
 }
 
 async function approvalCopy(toolName: string, args: Record<string, unknown>, hub: ToolHub) {
@@ -93,10 +130,23 @@ export async function POST(request: Request) {
           body.approval.spaceId ? { spaceId: body.approval.spaceId } : undefined,
         )
       : await agent.say(body.message!);
-    return NextResponse.json({ type: "message", message, state: encryptState(agent.snapshot()), trace: agent.trace(), mode: cloudMode() });
+    const receipt = body.approval
+      ? await approvalReceipt(agent, body.approval.toolCallId, body.approval.approved, body.approval.spaceId, hub)
+      : undefined;
+    return NextResponse.json({ type: "message", message, state: encryptState(agent.snapshot()), trace: agent.trace(), ...(receipt ? { receipt } : {}), mode: cloudMode() });
   } catch (error) {
     if (error instanceof ApprovalRequiredError && agent) {
-      return NextResponse.json({ type: "approval", pending: { toolCallId: error.toolCallId, toolName: error.toolName, args: error.args, ...await approvalCopy(error.toolName, error.args, hub) }, state: encryptState(agent.snapshot()), trace: agent.trace(), mode: cloudMode() });
+      const receipt = body.approval
+        ? await approvalReceipt(agent, body.approval.toolCallId, body.approval.approved, body.approval.spaceId, hub)
+        : undefined;
+      return NextResponse.json({
+        type: "approval",
+        pending: { toolCallId: error.toolCallId, toolName: error.toolName, args: error.args, ...await approvalCopy(error.toolName, error.args, hub) },
+        state: encryptState(agent.snapshot()),
+        trace: agent.trace(),
+        ...(receipt ? { receipt } : {}),
+        mode: cloudMode(),
+      });
     }
     return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   } finally {
