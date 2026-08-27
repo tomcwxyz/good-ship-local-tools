@@ -2,10 +2,10 @@ import "dotenv/config";
 import { McpServer } from "@modelcontextprotocol/server";
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
 import * as z from "zod/v4";
-import { createApiClient, jsonToolResult, requiredEnv, vercelBypassHeaders } from "../lib/http";
+import { createApiClient, jsonToolResult, requiredEnv } from "../lib/http";
 
-const baseUrl = process.env.SWELLS_BASE_URL?.trim() || "http://localhost:3001";
-const api = createApiClient(baseUrl, requiredEnv("SWELLS_AGENT_API_TOKEN"), vercelBypassHeaders("SWELLS_VERCEL_BYPASS_SECRET"));
+const baseUrl = process.env.SWELLS_BASE_URL?.trim() || "https://swells.app";
+const api = createApiClient(baseUrl, requiredEnv("SWELLS_API_KEY"));
 const defaultSpaceId = process.env.SWELLS_SPACE_ID?.trim();
 
 function resolvedSpaceId(spaceId?: string) {
@@ -21,11 +21,11 @@ function buildServer() {
     "swells_list_spaces",
     {
       description:
-        "List Swells spaces available to the configured pilot user. Swells is the sensing layer: observations and signals describe what people are noticing and what may be changing.",
+        "List Swells spaces available to the user represented by the scoped API key. Swells is the sensing layer: observations and signals describe what people are noticing and what may be changing.",
       inputSchema: z.object({}),
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
-    async () => jsonToolResult(await api("/api/agent/spaces")),
+    async () => jsonToolResult(await api("/api/v1/spaces")),
   );
 
   server.registerTool(
@@ -41,7 +41,7 @@ function buildServer() {
     },
     async ({ spaceId, limit }) => {
       const id = resolvedSpaceId(spaceId);
-      return jsonToolResult(await api(`/api/agent/observations?spaceId=${id}&limit=${limit}`));
+      return jsonToolResult(await api(`/api/v1/observations?spaceId=${id}&limit=${limit}`));
     },
   );
 
@@ -58,7 +58,7 @@ function buildServer() {
     },
     async ({ spaceId, limit }) => {
       const id = resolvedSpaceId(spaceId);
-      return jsonToolResult(await api(`/api/agent/signals?spaceId=${id}&limit=${limit}`));
+      return jsonToolResult(await api(`/api/v1/signals?spaceId=${id}&limit=${limit}`));
     },
   );
 
@@ -80,7 +80,7 @@ function buildServer() {
     },
     async ({ spaceId, text }) =>
       jsonToolResult(
-        await api("/api/agent/observations", {
+        await api("/api/v1/observations", {
           method: "POST",
           body: JSON.stringify({ spaceId: resolvedSpaceId(spaceId), text }),
         }),
