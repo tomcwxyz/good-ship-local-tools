@@ -41,6 +41,22 @@ async function approvalCopy(toolName: string, args: Record<string, unknown>, hub
     };
   }
   if (toolName === "tending_create_moment") return { product: "Tending", title: "Keep this relationship moment?", detail: String(args.content ?? ""), approveLabel: "Keep in Tending" };
+  if (toolName === "glade_draft_decision_candidate") {
+    return {
+      product: "Glade",
+      title: "Review this decision candidate",
+      detail: "This is a draft for discussion only. Nothing will be saved to Glade.",
+      approveLabel: "Continue with draft",
+      reviewOnly: true,
+      decisionCandidate: {
+        title: String(args.title ?? ""),
+        proposedOutcome: String(args.proposedOutcome ?? ""),
+        whyItMayNeedDecision: String(args.whyItMayNeedDecision ?? ""),
+        evidence: Array.isArray(args.evidence) ? args.evidence.filter((value): value is string => typeof value === "string") : [],
+        suggestedReviewDate: typeof args.suggestedReviewDate === "string" ? args.suggestedReviewDate : "",
+      },
+    };
+  }
   if (toolName === "swells_create_observation") {
     let spaces: SpaceOption[] = [];
     try { spaces = spaceOptions(await hub.callTool("swells_list_spaces", {})); } catch {}
