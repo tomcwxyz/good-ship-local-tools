@@ -82,7 +82,7 @@ function buildServer() {
       jsonToolResult(
         await api("/api/v1/observations", {
           method: "POST",
-          body: JSON.stringify({ spaceId: resolvedSpaceId(spaceId), text }),
+          body: JSON.stringify({ spaceId, text }),
         }),
       ),
   );
