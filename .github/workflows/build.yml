@@ -2,7 +2,18 @@ name: build
 on:
   push:
     branches: [ main ]
+    paths-ignore:
+      - "experiments/**"
+      - ".github/workflows/attention-agent.yml"
   pull_request:
+    paths-ignore:
+      - "experiments/**"
+      - ".github/workflows/attention-agent.yml"
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest

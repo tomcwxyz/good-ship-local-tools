@@ -2,8 +2,7 @@ name: Attention agent pilot
 
 on:
   push:
-    branches:
-      - pilot/attention-agent
+    branches: [ main ]
     paths:
       - "experiments/attention-agent/**"
       - ".github/workflows/attention-agent.yml"
@@ -11,6 +10,11 @@ on:
     paths:
       - "experiments/attention-agent/**"
       - ".github/workflows/attention-agent.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: attention-agent-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read

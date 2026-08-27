@@ -2,8 +2,14 @@ name: browser-smoke
 
 on:
   pull_request:
+    paths-ignore:
+      - "experiments/**"
+      - ".github/workflows/attention-agent.yml"
   push:
     branches: [ main ]
+    paths-ignore:
+      - "experiments/**"
+      - ".github/workflows/attention-agent.yml"
   workflow_dispatch:
 
 concurrency:
