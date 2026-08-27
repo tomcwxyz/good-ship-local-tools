@@ -90,6 +90,8 @@ async function approvalCopy(toolName: string, args: Record<string, unknown>, hub
       title: "Create this action?",
       detail: `${String(args.description ?? "")}${dueDate}${owner}`,
       approveLabel: "Create in Glade",
+      ownerName: typeof args.ownerName === "string" ? args.ownerName : "",
+      dueDate: typeof args.dueDate === "string" ? args.dueDate : "",
     };
   }
   if (toolName === "glade_draft_decision_candidate") {
