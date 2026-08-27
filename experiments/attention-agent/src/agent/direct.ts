@@ -1,5 +1,5 @@
-import { createApiClient, jsonToolResult, requiredEnv, vercelBypassHeaders } from "../lib/http.js";
-import type { AvailableTool, ToolHub } from "./hub.js";
+import { createApiClient, jsonToolResult, requiredEnv, vercelBypassHeaders } from "../lib/http";
+import type { AvailableTool, ToolHub } from "./hub";
 
 const obj = (properties: Record<string, unknown>, required: string[] = []) => ({ type: "object", properties, required, additionalProperties: false });
 const str = (extra: Record<string, unknown> = {}) => ({ type: "string", ...extra });
