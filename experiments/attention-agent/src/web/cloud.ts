@@ -4,8 +4,6 @@ import type { AgentSnapshot } from "../agent/model";
 import { McpToolHub } from "../agent/mcp";
 import { requiredEnv } from "../lib/http";
 
-const remoteNames = ["TENDING_MCP_URL", "SWELLS_MCP_URL", "GLADE_MCP_URL"] as const;
-
 export function isAuthorised(request: Request) {
   const expected = process.env.PILOT_ACCESS_KEY?.trim();
   const bearer = request.headers.get("authorization")?.trim();
@@ -17,11 +15,15 @@ export function isAuthorised(request: Request) {
 }
 
 export function cloudMode() {
-  return remoteNames.every((name) => Boolean(process.env[name]?.trim())) ? "remote-mcp" as const : "direct-api" as const;
+  return process.env.ATTENTION_TOOL_MODE?.trim() === "direct-api"
+    ? "direct-api" as const
+    : "remote-mcp" as const;
 }
 
 export function createCloudHub() {
-  return cloudMode() === "remote-mcp" ? new McpToolHub({ allowStdio: false }) : new DirectToolHub();
+  return cloudMode() === "remote-mcp"
+    ? new McpToolHub({ allowStdio: false, remoteDefaults: true })
+    : new DirectToolHub();
 }
 
 function stateKey() {
