@@ -11,8 +11,8 @@ type ActionReceipt = { product: string; status: "completed" | "declined" | "fail
 type Status = { mode: "direct-api" | "remote-mcp"; model: boolean; state: boolean; tending: boolean; swells: boolean; glade: boolean };
 
 const starters = [
-  "What seems to deserve attention across relationships, current signals and open decisions?",
-  "Prepare me for my next important conversation. What should I remember and what wider changes might be relevant?",
+  "What deserves attention today across upcoming work, relationships, current signals and commitments?",
+  "Prepare me for my next important conversation. Use my calendar to identify it, then tell me what I should remember and what wider changes might be relevant.",
   "What commitments or decisions look as though they may need following up?",
 ];
 
