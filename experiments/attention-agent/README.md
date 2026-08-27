@@ -1,128 +1,45 @@
 # Attention agent pilot
 
-An experimental local-first agent that treats Tending, Swells and Glade as distinct organisational capabilities exposed through MCP.
-
-The organising question is:
+A cloud-first experiment in one attention layer across **Tending**, **Swells** and **Glade**, with the same experiment still runnable as a local CLI.
 
 > **What deserves attention — and what should happen next?**
 
-The agent is the conversational front door. It is not the database and it does not merge the products.
+The agent is the conversational front door, not a central database. Tending remains relationship memory; Swells remains sensing; Glade remains governance and decision memory. The working loop is **notice → understand → remember → decide → act**.
 
-- **Tending** — relationships and how they change.
-- **Swells** — observations, patterns and signals of change.
-- **Glade** — decisions, governance and commitments.
+## Cloud test — recommended
 
-The working loop is: **notice → understand → remember → decide → act**.
+Deploy `experiments/attention-agent` as the Vercel project root.
 
-## What this pilot proves
-
-1. One agent can reason across three existing products without copying all their data into a new central store.
-2. Each product can expose a small, semantically meaningful MCP surface rather than generic database CRUD.
-3. Tools explicitly annotated read-only can be used freely; everything else requires human confirmation before execution.
-4. The same agent-side code can connect to local stdio MCP servers today or remote Streamable HTTP MCP endpoints later.
-5. A local agent process can use either a local OpenAI-compatible model server or a cloud model; where the model runs is independent of where the MCP tools run.
-
-## Tool surface
-
-### Tending
-
-- `tending_search_connections`
-- `tending_get_relationship_context` — one connection's summary, linked Moments and relationship observations
-- `tending_recent_moments`
-- `tending_recent_observations`
-- `tending_create_moment` **(confirmed write)**
-
-### Swells
-
-- `swells_list_spaces`
-- `swells_recent_observations`
-- `swells_signals`
-- `swells_create_observation` **(confirmed write)**
-
-### Glade
-
-- `glade_list_decisions`
-- `glade_get_decision`
-- `glade_list_open_actions`
-- `glade_list_meetings`
-- `glade_list_documents`
-- `glade_draft_decision_candidate` **(reviewable draft only; does not write)**
-
-Glade is intentionally read/draft-only in this first slice. Recording a governance decision is a stronger act than capturing a Moment or Observation, so the pilot surfaces a candidate rather than manufacturing a decision from ambient activity.
-
-## Run locally
-
-This experiment is isolated from the main `good-ship-local-tools` application.
-
-```bash
-cd experiments/attention-agent
-npm install
-cp .env.example .env
-```
-
-Configure `.env` with:
-
-- a Tending API key for the pilot organisation;
-- the temporary Swells agent API token and optional default space ID;
-- a Glade API key for the pilot space;
-- a tool-capable model.
-
-Then run Tending, Swells and Glade locally (or point the base URLs at deployed pilot environments) and start:
-
-```bash
-npm run check
-npm run agent
-```
-
-The agent starts the three MCP adapters itself. Do **not** separately run the `mcp:*` scripts unless debugging an individual server.
-
-### Local model
-
-Any OpenAI-compatible endpoint with function/tool calling can be used. For example, point `AGENT_BASE_URL` at an Ollama or LM Studio OpenAI-compatible endpoint and set `AGENT_MODEL` to a locally installed tool-capable model. `AGENT_API_KEY` can be blank if that local endpoint does not require one.
-
-### Cloud model
-
-Set:
+Configure:
 
 ```env
+PILOT_ACCESS_KEY=<long-random-pilot-passphrase>
+AGENT_STATE_SECRET=<long-random-secret-at-least-32-characters>
+
 AGENT_BASE_URL=https://api.openai.com/v1
 AGENT_MODEL=<tool-capable-model>
-AGENT_API_KEY=<key>
+AGENT_API_KEY=<model-key>
+
+TENDING_BASE_URL=https://<deployed-tending-pilot>
+TENDING_API_KEY=<pilot-org-api-key>
+
+SWELLS_BASE_URL=https://<deployed-swells-pilot>
+SWELLS_AGENT_API_TOKEN=<temporary-pilot-token>
+SWELLS_SPACE_ID=<space-uuid>
+
+GLADE_BASE_URL=https://<deployed-glade>
+GLADE_API_KEY=<space-api-key>
 ```
 
-The agent process still runs locally; only model inference is remote.
+The browser asks for the pilot access key. It is kept in session storage only. The server keeps no conversation database: model/tool history is encrypted with `AGENT_STATE_SECRET` and returned to the browser as an opaque state token between turns.
 
-## Suggested pilot conversations
+Read tools run without interruption. A proposed Tending Moment or Swells Observation pauses the agent and appears as an approval card. Approve to write it through the normal product API, or choose **Not now** and let the agent continue.
 
-Try questions that genuinely cross product boundaries:
+### Cloud transport
 
-```text
-Prepare me for my next conversation with Amina. What should I remember and what wider changes might be relevant?
-```
+For the quickest test, cloud mode uses the existing product HTTPS APIs through a direct tool hub that mirrors the MCP tool contracts.
 
-For that query the agent should resolve Amina with `tending_search_connections`, then use `tending_get_relationship_context` rather than trying to infer her history from an organisation-wide list of Moments.
-
-```text
-What seems to deserve attention across relationships, current signals and open decisions?
-```
-
-```text
-I just spoke to Amina. She is going to introduce us to Northbank, and she said three councils are hesitating because funding feels uncertain. The partnership proposal may need changing.
-```
-
-For the last example the useful behaviour is not to duplicate the paragraph everywhere. The agent should distinguish:
-
-- a relationship development that may deserve a Tending Moment;
-- a wider pattern that may deserve a Swells Observation;
-- a possible governance question that should become a Glade decision candidate for review.
-
-If it tries to call any MCP tool that is not explicitly marked `readOnlyHint: true`, the CLI shows the proposed call and waits for `y`/`yes` before executing it. This deliberately fails safe as new tools are added later.
-
-## Cloud-agent path
-
-There is deliberately no second “cloud agent architecture”. The same agent/tool contracts should move between environments.
-
-By default each product adapter is a local stdio MCP process. If any of these are set:
+When all three product MCP URLs are configured:
 
 ```env
 TENDING_MCP_URL=https://.../mcp
@@ -130,35 +47,99 @@ SWELLS_MCP_URL=https://.../mcp
 GLADE_MCP_URL=https://.../mcp
 ```
 
-the agent connects to that product over Streamable HTTP instead. Optional bearer tokens use the corresponding `*_MCP_BEARER_TOKEN` variables.
+the same web agent switches to Streamable HTTP MCP. No UI or reasoning rewrite is needed.
 
-That allows a later always-on agent or realtime voice shell to use the same tools. The work needed before that is primarily authentication, user/organisation routing, permission policy, audit/retention and deployment — not a rewrite of the product semantics.
+```text
+now:   cloud agent → semantic tools → product HTTPS APIs
+later: cloud agent → same tools     → product remote MCP
+```
+
+## Local option
+
+```bash
+cd experiments/attention-agent
+npm install
+cp .env.example .env
+npm run check
+npm run agent
+```
+
+The local CLI starts the three stdio MCP adapters itself unless remote `*_MCP_URL` values are present. Product base URLs can point at local apps or deployed cloud apps.
+
+A local OpenAI-compatible model can be used via Ollama, LM Studio or llama.cpp; a hosted OpenAI-compatible endpoint works too.
+
+## Tool surface
+
+**Tending**
+- `tending_search_connections`
+- `tending_get_relationship_context`
+- `tending_recent_moments`
+- `tending_recent_observations`
+- `tending_create_moment` — confirmed write
+
+**Swells**
+- `swells_list_spaces`
+- `swells_recent_observations`
+- `swells_signals`
+- `swells_create_observation` — confirmed write
+
+**Glade**
+- `glade_list_decisions`
+- `glade_get_decision`
+- `glade_list_open_actions`
+- `glade_list_meetings`
+- `glade_list_documents`
+- `glade_draft_decision_candidate` — reviewable draft only; does not write
+
+Glade stays read/draft-only in this slice. Recording a governance decision is a stronger act than capturing a Moment or Observation.
+
+## Suggested tests
+
+```text
+What seems to deserve attention across relationships, current signals and open decisions?
+```
+
+```text
+Prepare me for my next conversation with Amina. What should I remember and what wider changes might be relevant?
+```
+
+For a named relationship the agent should resolve the connection in Tending and then use relationship-specific context.
+
+```text
+I just spoke to Amina. She is going to introduce us to Northbank, and she said three councils are hesitating because funding feels uncertain. The partnership proposal may need changing.
+```
+
+A good result distinguishes:
+- a relationship development that may deserve a Tending Moment;
+- a wider pattern that may deserve a Swells Observation;
+- a governance question that should remain a Glade decision candidate until reviewed.
 
 ## Pilot boundaries
 
-- No central mega-database.
-- No automatic promotion of Calendar/email/document activity into product records.
+- No central copy of product data.
+- Product API credentials remain server-side.
+- No persistent server-side conversation database.
+- Browser agent state is encrypted and authenticated.
+- A separate pilot key gates chat and status routes.
+- Reads can execute automatically; writes fail safe to approval.
 - No automatic Glade decisions.
-- No fuzzy cross-product identity matching yet.
-- No background autonomy beyond what each host explicitly invokes.
-- No voice UI yet; voice is a later shell over the same agent/tool loop.
-- The Swells agent API is a temporary single-user pilot bridge and should be replaced by first-class API-key/OAuth auth before broader use.
+- No background autonomy.
+- Swells' agent API remains a temporary single-user bridge.
+- External content is treated as context, not as instructions.
 
-## Where ContextEvent fits
+## ContextEvent
 
-The Calendar pilot remains useful. `ContextEvent` is the attention/event feed — “what just happened?”. MCP answers “what can I read or do?”. The agent interprets the event against durable product context and decides what, if anything, to propose.
+`ContextEvent` remains the attention/event feed — **what just happened?** Tool/MCP access answers **what can I read or do?**
 
 ```text
-Calendar / mail / docs / other tools
-             │
-        ContextEvent
-             │
-             ▼
-       attention agent
-       /      |       \
- Tending    Swells    Glade
- relationship sensing governance
-   memory     memory    memory
+Calendar / mail / docs
+        │
+   ContextEvent
+        │
+        ▼
+ attention agent
+   /    |    \
+Tending Swells Glade
 ```
 
-That separation is intentional: eventing, reasoning and durable memory remain different concerns.
+Once the cloud conversation is useful, the next experiment is to route Calendar ContextEvents into this agent rather than independently prompting each product.

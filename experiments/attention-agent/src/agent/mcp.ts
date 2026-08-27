@@ -2,13 +2,7 @@ import { fileURLToPath } from "node:url";
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
 import { StdioClientTransport } from "@modelcontextprotocol/client/stdio";
 import { optionalEnv } from "../lib/http.js";
-
-export type AvailableTool = {
-  name: string;
-  description?: string;
-  inputSchema: Record<string, unknown>;
-  annotations?: { readOnlyHint?: boolean };
-};
+import type { AvailableTool, ToolHub } from "./hub.js";
 
 type ProductConfig = {
   product: "tending" | "swells" | "glade";
@@ -18,63 +12,43 @@ type ProductConfig = {
 };
 
 const configs: ProductConfig[] = [
-  {
-    product: "tending",
-    script: new URL("../mcp/tending.ts", import.meta.url),
-    remoteUrlEnv: "TENDING_MCP_URL",
-    remoteTokenEnv: "TENDING_MCP_BEARER_TOKEN",
-  },
-  {
-    product: "swells",
-    script: new URL("../mcp/swells.ts", import.meta.url),
-    remoteUrlEnv: "SWELLS_MCP_URL",
-    remoteTokenEnv: "SWELLS_MCP_BEARER_TOKEN",
-  },
-  {
-    product: "glade",
-    script: new URL("../mcp/glade.ts", import.meta.url),
-    remoteUrlEnv: "GLADE_MCP_URL",
-    remoteTokenEnv: "GLADE_MCP_BEARER_TOKEN",
-  },
+  { product: "tending", script: new URL("../mcp/tending.ts", import.meta.url), remoteUrlEnv: "TENDING_MCP_URL", remoteTokenEnv: "TENDING_MCP_BEARER_TOKEN" },
+  { product: "swells", script: new URL("../mcp/swells.ts", import.meta.url), remoteUrlEnv: "SWELLS_MCP_URL", remoteTokenEnv: "SWELLS_MCP_BEARER_TOKEN" },
+  { product: "glade", script: new URL("../mcp/glade.ts", import.meta.url), remoteUrlEnv: "GLADE_MCP_URL", remoteTokenEnv: "GLADE_MCP_BEARER_TOKEN" },
 ];
 
 function inheritedEnv(): Record<string, string> {
-  return Object.fromEntries(
-    Object.entries(process.env).filter((entry): entry is [string, string] => typeof entry[1] === "string"),
-  );
+  return Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => typeof entry[1] === "string"));
 }
 
-export class McpToolHub {
+export class McpToolHub implements ToolHub {
   private clients: Client[] = [];
   private owners = new Map<string, Client>();
   private tools: AvailableTool[] = [];
 
+  constructor(private readonly options: { allowStdio?: boolean } = {}) {}
+
   async connect() {
     for (const config of configs) {
       const client = new Client(
-        { name: `attention-agent-${config.product}`, version: "0.1.0" },
+        { name: `attention-agent-${config.product}`, version: "0.2.0" },
         { versionNegotiation: { mode: "auto" } },
       );
-
       const remoteUrl = optionalEnv(config.remoteUrlEnv);
       if (remoteUrl) {
         const bearer = optionalEnv(config.remoteTokenEnv);
-        const transport = new StreamableHTTPClientTransport(
+        await client.connect(new StreamableHTTPClientTransport(
           new URL(remoteUrl),
-          bearer
-            ? { requestInit: { headers: { authorization: `Bearer ${bearer}` } } }
-            : undefined,
-        );
-        await client.connect(transport);
+          bearer ? { requestInit: { headers: { authorization: `Bearer ${bearer}` } } } : undefined,
+        ));
       } else {
-        const transport = new StdioClientTransport({
+        if (this.options.allowStdio === false) throw new Error(`${config.remoteUrlEnv} is required when stdio MCP is disabled`);
+        await client.connect(new StdioClientTransport({
           command: process.platform === "win32" ? "npx.cmd" : "npx",
           args: ["tsx", fileURLToPath(config.script)],
           env: inheritedEnv(),
-        });
-        await client.connect(transport);
+        }));
       }
-
       this.clients.push(client);
       const { tools } = await client.listTools();
       for (const tool of tools) {
@@ -88,18 +62,14 @@ export class McpToolHub {
         });
       }
     }
-    return this.tools;
+    return this.listTools();
   }
 
-  listTools() {
-    return [...this.tools];
-  }
+  listTools() { return [...this.tools]; }
 
   requiresApproval(name: string) {
     const tool = this.tools.find((candidate) => candidate.name === name);
-    if (!tool) return true;
-    // Safety default: anything not explicitly declared read-only asks first.
-    return tool.annotations?.readOnlyHint !== true;
+    return tool?.annotations?.readOnlyHint !== true;
   }
 
   async callTool(name: string, args: Record<string, unknown>) {
