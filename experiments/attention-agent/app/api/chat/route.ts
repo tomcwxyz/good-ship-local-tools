@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { ApprovalRequiredError, AttentionAgent } from "../../../src/agent/model";
+import { ApprovalRequiredError, AttentionAgent } from "../../../src/agent/model";\nimport type { ToolHub } from "../../../src/agent/hub";
 import { cloudMode, createCloudHub, decryptState, encryptState, isAuthorised } from "../../../src/web/cloud";
 
 export const runtime = "nodejs";
@@ -9,12 +9,37 @@ export const maxDuration = 60;
 const requestSchema = z.object({
   message: z.string().trim().min(1).max(12000).optional(),
   state: z.string().min(1).optional(),
-  approval: z.object({ toolCallId: z.string().min(1), approved: z.boolean() }).optional(),
+  approval: z.object({ toolCallId: z.string().min(1), approved: z.boolean(), spaceId: z.string().uuid().optional() }).optional(),
 });
 
-function approvalCopy(toolName: string, args: Record<string, unknown>) {
+type SpaceOption = { id: string; name: string; description?: string | null };
+
+function spaceOptions(result: unknown): SpaceOption[] {
+  const structured = result && typeof result === "object" ? (result as { structuredContent?: unknown }).structuredContent : undefined;
+  const data = structured && typeof structured === "object" ? (structured as { data?: unknown }).data : undefined;
+  if (!Array.isArray(data)) return [];
+  return data.flatMap((row) => {
+    if (!row || typeof row !== "object") return [];
+    const value = row as Record<string, unknown>;
+    if (typeof value.id !== "string" || typeof value.name !== "string") return [];
+    return [{ id: value.id, name: value.name, description: typeof value.description === "string" ? value.description : null }];
+  });
+}
+
+async function approvalCopy(toolName: string, args: Record<string, unknown>, hub: ToolHub) {
   if (toolName === "tending_create_moment") return { product: "Tending", title: "Keep this relationship moment?", detail: String(args.content ?? ""), approveLabel: "Keep in Tending" };
-  if (toolName === "swells_create_observation") return { product: "Swells", title: "Keep this observation?", detail: String(args.text ?? ""), approveLabel: "Keep in Swells" };
+  if (toolName === "swells_create_observation") {
+    let spaces: SpaceOption[] = [];
+    try { spaces = spaceOptions(await hub.callTool("swells_list_spaces", {})); } catch {}
+    return {
+      product: "Swells",
+      title: "Keep this observation?",
+      detail: String(args.text ?? ""),
+      approveLabel: "Keep in Swells",
+      selectedSpaceId: typeof args.spaceId === "string" ? args.spaceId : undefined,
+      spaceOptions: spaces,
+    };
+  }
   return { product: "Connected tool", title: `Allow ${toolName}?`, detail: JSON.stringify(args, null, 2), approveLabel: "Allow" };
 }
 
@@ -33,12 +58,16 @@ export async function POST(request: Request) {
     await hub.connect();
     agent = new AttentionAgent(hub, async () => "defer", snapshot);
     const message = body.approval
-      ? await agent.resumeApproval(body.approval.toolCallId, body.approval.approved)
+      ? await agent.resumeApproval(
+          body.approval.toolCallId,
+          body.approval.approved,
+          body.approval.spaceId ? { spaceId: body.approval.spaceId } : undefined,
+        )
       : await agent.say(body.message!);
     return NextResponse.json({ type: "message", message, state: encryptState(agent.snapshot()), mode: cloudMode() });
   } catch (error) {
     if (error instanceof ApprovalRequiredError && agent) {
-      return NextResponse.json({ type: "approval", pending: { toolCallId: error.toolCallId, toolName: error.toolName, args: error.args, ...approvalCopy(error.toolName, error.args) }, state: encryptState(agent.snapshot()), mode: cloudMode() });
+      return NextResponse.json({ type: "approval", pending: { toolCallId: error.toolCallId, toolName: error.toolName, args: error.args, ...await approvalCopy(error.toolName, error.args, hub) }, state: encryptState(agent.snapshot()), mode: cloudMode() });
     }
     return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   } finally {
