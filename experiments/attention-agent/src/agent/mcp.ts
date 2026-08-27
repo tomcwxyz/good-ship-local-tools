@@ -1,8 +1,8 @@
 import { fileURLToPath } from "node:url";
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
 import { StdioClientTransport } from "@modelcontextprotocol/client/stdio";
-import { optionalEnv } from "../lib/http.js";
-import type { AvailableTool, ToolHub } from "./hub.js";
+import { optionalEnv } from "../lib/http";
+import type { AvailableTool, ToolHub } from "./hub";
 
 type ProductConfig = {
   product: "tending" | "swells" | "glade";
