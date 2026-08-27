@@ -1,8 +1,8 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes, timingSafeEqual } from "node:crypto";
-import { DirectToolHub } from "../agent/direct.js";
-import type { AgentSnapshot } from "../agent/model.js";
-import { McpToolHub } from "../agent/mcp.js";
-import { requiredEnv } from "../lib/http.js";
+import { DirectToolHub } from "../agent/direct";
+import type { AgentSnapshot } from "../agent/model";
+import { McpToolHub } from "../agent/mcp";
+import { requiredEnv } from "../lib/http";
 
 const remoteNames = ["TENDING_MCP_URL", "SWELLS_MCP_URL", "GLADE_MCP_URL"] as const;
 
