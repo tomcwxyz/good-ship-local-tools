@@ -68,6 +68,7 @@ export class McpToolHub implements ToolHub {
   listTools() { return [...this.tools]; }
 
   requiresApproval(name: string) {
+    if (name === "glade_draft_decision_candidate") return true;
     const tool = this.tools.find((candidate) => candidate.name === name);
     return tool?.annotations?.readOnlyHint !== true;
   }
