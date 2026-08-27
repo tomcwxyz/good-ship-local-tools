@@ -93,10 +93,10 @@ export async function POST(request: Request) {
           body.approval.spaceId ? { spaceId: body.approval.spaceId } : undefined,
         )
       : await agent.say(body.message!);
-    return NextResponse.json({ type: "message", message, state: encryptState(agent.snapshot()), mode: cloudMode() });
+    return NextResponse.json({ type: "message", message, state: encryptState(agent.snapshot()), trace: agent.trace(), mode: cloudMode() });
   } catch (error) {
     if (error instanceof ApprovalRequiredError && agent) {
-      return NextResponse.json({ type: "approval", pending: { toolCallId: error.toolCallId, toolName: error.toolName, args: error.args, ...await approvalCopy(error.toolName, error.args, hub) }, state: encryptState(agent.snapshot()), mode: cloudMode() });
+      return NextResponse.json({ type: "approval", pending: { toolCallId: error.toolCallId, toolName: error.toolName, args: error.args, ...await approvalCopy(error.toolName, error.args, hub) }, state: encryptState(agent.snapshot()), trace: agent.trace(), mode: cloudMode() });
     }
     return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   } finally {
