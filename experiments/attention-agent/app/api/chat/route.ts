@@ -59,6 +59,9 @@ async function approvalReceipt(agent: AttentionAgent, toolCallId: string, approv
       text: `Observation saved to Swells${spaceName ? ` · ${spaceName}` : ""}.`,
     };
   }
+  if (entry.toolName === "glade_create_action") {
+    return { product: "Glade", status: "completed", text: "Action saved to Glade." };
+  }
   if (entry.toolName === "glade_draft_decision_candidate") {
     return { product: "Glade", status: "completed", text: "Decision candidate reviewed · nothing saved to Glade." };
   }
@@ -79,6 +82,16 @@ async function approvalCopy(toolName: string, args: Record<string, unknown>, hub
     };
   }
   if (toolName === "tending_create_moment") return { product: "Tending", title: "Keep this relationship moment?", detail: String(args.content ?? ""), approveLabel: "Keep in Tending" };
+  if (toolName === "glade_create_action") {
+    const dueDate = typeof args.dueDate === "string" && args.dueDate ? `\nDue: ${args.dueDate}` : "";
+    const owner = typeof args.ownerName === "string" && args.ownerName ? `\nOwner: ${args.ownerName}` : "";
+    return {
+      product: "Glade",
+      title: "Create this action?",
+      detail: `${String(args.description ?? "")}${dueDate}${owner}`,
+      approveLabel: "Create in Glade",
+    };
+  }
   if (toolName === "glade_draft_decision_candidate") {
     return {
       product: "Glade",
