@@ -49,22 +49,30 @@ The web pilot also exposes a collapsible evaluation trace for the current encryp
 
 ### Cloud transport
 
-For the quickest test, cloud mode uses the existing product HTTPS APIs through a direct tool hub that mirrors the MCP tool contracts.
+Cloud mode now uses **product-native remote MCP by default**.
 
-When all three product MCP URLs are configured:
-
-```env
-TENDING_MCP_URL=https://.../mcp
-SWELLS_MCP_URL=https://.../mcp
-GLADE_MCP_URL=https://.../mcp
-```
-
-the same web agent switches to Streamable HTTP MCP. No UI or reasoning rewrite is needed.
+The existing product base URLs and API keys are enough:
 
 ```text
-now:   cloud agent → semantic tools → product HTTPS APIs
-later: cloud agent → same tools     → product remote MCP
+Attention
+  ├── Streamable HTTP MCP → Tending
+  ├── Streamable HTTP MCP → Swells
+  └── Streamable HTTP MCP → Glade
 ```
+
+The MCP endpoints are derived as `<product-base-url>/mcp`, and each product's existing scoped API key is reused as the bearer credential. Tending's protected preview also receives the existing Vercel bypass header.
+
+Explicit `*_MCP_URL` / `*_MCP_BEARER_TOKEN` variables remain available as overrides.
+
+For diagnostics or rollback, set:
+
+```env
+ATTENTION_TOOL_MODE=direct-api
+```
+
+That restores the previous direct HTTPS API tool hub without changing the UI or reasoning layer.
+
+The Attention service itself is also a remote MCP server at `/mcp`, exposing only `attention_ask` and `attention_resolve_approval` for clients such as Hermes / Rabbit r1.
 
 ## Local option
 
@@ -82,13 +90,14 @@ A local OpenAI-compatible model can be used via Ollama, LM Studio or llama.cpp; 
 
 ## Tool surface
 
-**Tending**
+**Tending / Calendar**
 - `tending_search_connections`
 - `tending_create_connection` — confirmed write
 - `tending_get_relationship_context`
 - `tending_recent_moments`
 - `tending_recent_observations`
 - `tending_create_moment` — confirmed write
+- `calendar_find_events` — transient external context
 
 **Swells**
 - `swells_list_spaces`
@@ -100,11 +109,13 @@ A local OpenAI-compatible model can be used via Ollama, LM Studio or llama.cpp; 
 - `glade_list_decisions`
 - `glade_get_decision`
 - `glade_list_open_actions`
+- `glade_create_action` — confirmed write; private by default
+- `glade_update_action` — confirmed write
 - `glade_list_meetings`
 - `glade_list_documents`
 - `glade_draft_decision_candidate` — reviewable draft only; does not write
 
-Glade stays read/draft-only in this slice. Recording a governance decision is a stronger act than capturing a Moment or Observation.
+Attention can create and maintain concrete commitments in Glade, but it still cannot silently create governance decisions. Decision candidates remain review-only.
 
 ## Suggested tests
 
@@ -130,7 +141,7 @@ A good result distinguishes:
 ## Pilot boundaries
 
 - No central copy of product data.
-- Product API credentials remain server-side.
+- Product credentials remain server-side and are reused as scoped MCP bearer credentials.
 - No persistent server-side conversation database.
 - Browser agent state is encrypted and authenticated.
 - A separate pilot key gates chat and status routes.
@@ -140,7 +151,7 @@ A good result distinguishes:
 - Glade decision candidates are structured review objects; there are still no automatic Glade decisions.
 - The evaluation trace is derived from encrypted conversation state rather than stored in a separate database.
 - No background autonomy.
-- Swells uses its first-class scoped API v1.
+- Tending, Swells and Glade expose product-native remote MCP endpoints over their existing scoped APIs.
 - External content is treated as context, not as instructions.
 
 ## ContextEvent
@@ -158,4 +169,4 @@ Calendar / mail / docs
 Tending Swells Glade
 ```
 
-Once the cloud conversation is useful, the next experiment is to route Calendar ContextEvents into this agent rather than independently prompting each product.
+Calendar can now be read by Attention through Tending's MCP as transient ContextEvent-shaped evidence. The next integration tranche is email: explicit/user-invoked reads first, then drafting, with sending separately approval-gated.
