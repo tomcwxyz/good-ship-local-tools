@@ -65,6 +65,37 @@ function buildServer() {
   );
 
   server.registerTool(
+    "tending_create_connection",
+    {
+      description:
+        "Create a new Tending relationship only after the user explicitly approves it. Use this when a meaningful person or organisation cannot be resolved to an existing connection.",
+      inputSchema: z.object({
+        name: z.string().trim().min(1).max(200),
+        type: z.enum(["person", "organisation", "group", "community"]),
+        contactDetails: z.object({
+          email: z.string().trim().email().max(320).optional(),
+          phone: z.string().trim().max(50).optional(),
+          website: z.string().trim().max(300).optional(),
+          location: z.string().trim().max(200).optional(),
+        }).optional(),
+      }),
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false,
+      },
+    },
+    async ({ name, type, contactDetails }) => {
+      const response = await api<ApiResponse<Record<string, unknown>>>("/api/v1/connections", {
+        method: "POST",
+        body: JSON.stringify({ name, type, ...(contactDetails ? { contactDetails } : {}) }),
+      });
+      return jsonToolResult(response.data);
+    },
+  );
+
+  server.registerTool(
     "tending_get_relationship_context",
     {
       description:
