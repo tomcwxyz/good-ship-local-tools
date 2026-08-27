@@ -2,10 +2,10 @@ import "dotenv/config";
 import { McpServer } from "@modelcontextprotocol/server";
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
 import * as z from "zod/v4";
-import { createApiClient, jsonToolResult, requiredEnv } from "../lib/http.js";
+import { createApiClient, jsonToolResult, requiredEnv, vercelBypassHeaders } from "../lib/http.js";
 
 const baseUrl = process.env.SWELLS_BASE_URL?.trim() || "http://localhost:3001";
-const api = createApiClient(baseUrl, requiredEnv("SWELLS_AGENT_API_TOKEN"));
+const api = createApiClient(baseUrl, requiredEnv("SWELLS_AGENT_API_TOKEN"), vercelBypassHeaders("SWELLS_VERCEL_BYPASS_SECRET"));
 const defaultSpaceId = process.env.SWELLS_SPACE_ID?.trim();
 
 function resolvedSpaceId(spaceId?: string) {

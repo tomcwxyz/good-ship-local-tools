@@ -9,7 +9,16 @@ export function optionalEnv(name: string): string | undefined {
   return value || undefined;
 }
 
-export function createApiClient(baseUrl: string, bearerToken: string) {
+export function vercelBypassHeaders(envName: string): Record<string, string> {
+  const secret = process.env[envName]?.trim();
+  return secret ? { "x-vercel-protection-bypass": secret } : {};
+}
+
+export function createApiClient(
+  baseUrl: string,
+  bearerToken: string,
+  defaultHeaders: Record<string, string> = {},
+) {
   const base = baseUrl.replace(/\/$/, "");
 
   return async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -19,6 +28,7 @@ export function createApiClient(baseUrl: string, bearerToken: string) {
         accept: "application/json",
         authorization: `Bearer ${bearerToken}`,
         ...(init.body ? { "content-type": "application/json" } : {}),
+        ...defaultHeaders,
         ...init.headers,
       },
     });

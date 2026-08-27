@@ -2,10 +2,10 @@ import "dotenv/config";
 import { McpServer } from "@modelcontextprotocol/server";
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
 import * as z from "zod/v4";
-import { createApiClient, jsonToolResult, requiredEnv } from "../lib/http.js";
+import { createApiClient, jsonToolResult, requiredEnv, vercelBypassHeaders } from "../lib/http.js";
 
 const baseUrl = process.env.GLADE_BASE_URL?.trim() || "http://localhost:3002";
-const api = createApiClient(baseUrl, requiredEnv("GLADE_API_KEY"));
+const api = createApiClient(baseUrl, requiredEnv("GLADE_API_KEY"), vercelBypassHeaders("GLADE_VERCEL_BYPASS_SECRET"));
 
 function buildServer() {
   const server = new McpServer({ name: "glade", version: "0.1.0" });

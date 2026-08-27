@@ -1,4 +1,4 @@
-import { createApiClient, jsonToolResult, requiredEnv } from "../lib/http.js";
+import { createApiClient, jsonToolResult, requiredEnv, vercelBypassHeaders } from "../lib/http.js";
 import type { AvailableTool, ToolHub } from "./hub.js";
 
 const obj = (properties: Record<string, unknown>, required: string[] = []) => ({ type: "object", properties, required, additionalProperties: false });
@@ -32,9 +32,9 @@ const n = (value: unknown, fallback: number, max: number) => {
 const s = (value: unknown) => typeof value === "string" && value.trim() ? value.trim() : undefined;
 
 export class DirectToolHub implements ToolHub {
-  private readonly tending = createApiClient(process.env.TENDING_BASE_URL?.trim() || "http://localhost:3000", requiredEnv("TENDING_API_KEY"));
-  private readonly swells = createApiClient(process.env.SWELLS_BASE_URL?.trim() || "http://localhost:3001", requiredEnv("SWELLS_AGENT_API_TOKEN"));
-  private readonly glade = createApiClient(process.env.GLADE_BASE_URL?.trim() || "http://localhost:3002", requiredEnv("GLADE_API_KEY"));
+  private readonly tending = createApiClient(process.env.TENDING_BASE_URL?.trim() || "http://localhost:3000", requiredEnv("TENDING_API_KEY"), vercelBypassHeaders("TENDING_VERCEL_BYPASS_SECRET"));
+  private readonly swells = createApiClient(process.env.SWELLS_BASE_URL?.trim() || "http://localhost:3001", requiredEnv("SWELLS_AGENT_API_TOKEN"), vercelBypassHeaders("SWELLS_VERCEL_BYPASS_SECRET"));
+  private readonly glade = createApiClient(process.env.GLADE_BASE_URL?.trim() || "http://localhost:3002", requiredEnv("GLADE_API_KEY"), vercelBypassHeaders("GLADE_VERCEL_BYPASS_SECRET"));
   private readonly defaultSpace = s(process.env.SWELLS_SPACE_ID);
 
   async connect() { return this.listTools(); }
