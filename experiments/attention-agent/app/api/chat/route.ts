@@ -13,7 +13,8 @@ const requestSchema = z.object({
   approval: z.object({ toolCallId: z.string().min(1), approved: z.boolean(), spaceId: z.string().uuid().optional() }).optional(),
 });
 
-type SpaceOption = { id: string; name: string; description?: string | null };\ntype ActionReceipt = { product: string; status: "completed" | "declined" | "failed"; text: string };
+type SpaceOption = { id: string; name: string; description?: string | null };
+type ActionReceipt = { product: string; status: "completed" | "declined" | "failed"; text: string };
 
 function spaceOptions(result: unknown): SpaceOption[] {
   const structured = result && typeof result === "object" ? (result as { structuredContent?: unknown }).structuredContent : undefined;
