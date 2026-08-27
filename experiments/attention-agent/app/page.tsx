@@ -3,7 +3,8 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 type UiMessage = { role: "user" | "assistant"; content: string };
-type SpaceOption = { id: string; name: string; description?: string | null };\ntype PendingApproval = { toolCallId: string; toolName: string; product: string; title: string; detail: string; approveLabel: string; selectedSpaceId?: string; spaceOptions?: SpaceOption[] };
+type SpaceOption = { id: string; name: string; description?: string | null };
+type PendingApproval = { toolCallId: string; toolName: string; product: string; title: string; detail: string; approveLabel: string; selectedSpaceId?: string; spaceOptions?: SpaceOption[] };
 type Status = { mode: "direct-api" | "remote-mcp"; model: boolean; state: boolean; tending: boolean; swells: boolean; glade: boolean };
 
 const starters = [
@@ -18,7 +19,8 @@ export default function Home() {
   const [status, setStatus] = useState<Status | null>(null);
   const [messages, setMessages] = useState<UiMessage[]>([]);
   const [state, setState] = useState<string>();
-  const [pending, setPending] = useState<PendingApproval | null>(null);\n  const [approvalSpaceId, setApprovalSpaceId] = useState("");
+  const [pending, setPending] = useState<PendingApproval | null>(null);
+  const [approvalSpaceId, setApprovalSpaceId] = useState("");
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
