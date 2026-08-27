@@ -20,7 +20,8 @@ const tools: AvailableTool[] = [
   { name: "glade_list_decisions", description: "List decisions from Glade, the durable governance/decision record.", inputSchema: obj({ status: { type: "string", enum: ["decided", "implemented", "reviewed", "learned"] }, limit: int({ minimum: 1, maximum: 200, default: 50 }) }), annotations: { readOnlyHint: true } },
   { name: "glade_get_decision", description: "Read a Glade decision in detail by its decision number.", inputSchema: obj({ number: int({ minimum: 1 }) }, ["number"]), annotations: { readOnlyHint: true } },
   { name: "glade_list_open_actions", description: "List open Glade actions and commitments.", inputSchema: obj({ limit: int({ minimum: 1, maximum: 200, default: 50 }) }), annotations: { readOnlyHint: true } },
-  { name: "glade_create_action", description: "Propose a private Glade action for a concrete commitment or next step. Use this for something specific that should happen, especially when there is an owner or due date. Do not use it for vague advice or unresolved choices. The application requires explicit user approval before this write executes.", inputSchema: obj({ description: str({ minLength: 1, maxLength: 2000 }), ownerName: str({ maxLength: 255 }), dueDate: str() }, ["description"]), annotations: { readOnlyHint: false } },
+  { name: "glade_create_action", description: "Propose a private Glade action for a concrete commitment or next step. Use this for something specific that should happen, especially when there is an owner or due date. Preserve compact provenance metadata when the commitment directly arose from another record or ContextEvent. The application requires explicit user approval before this write executes.", inputSchema: obj({ description: str({ minLength: 1, maxLength: 2000 }), ownerName: str({ maxLength: 255 }), dueDate: str(), metadata: { type: "object", additionalProperties: true } }, ["description"]), annotations: { readOnlyHint: false } },
+  { name: "glade_update_action", description: "Propose updating an existing Glade action, including owner, due date, description or status. Use only for a known existing commitment. The application requires explicit user approval before this write executes.", inputSchema: obj({ actionId: str({ format: "uuid" }), description: str({ minLength: 1, maxLength: 2000 }), ownerName: { anyOf: [str({ maxLength: 255 }), { type: "null" }] }, dueDate: { anyOf: [str(), { type: "null" }] }, status: { type: "string", enum: ["open", "in_progress", "complete", "overdue"] } }, ["actionId"]), annotations: { readOnlyHint: false } },
   { name: "glade_list_meetings", description: "List recent Glade governance meetings.", inputSchema: obj({ limit: int({ minimum: 1, maximum: 200, default: 30 }) }), annotations: { readOnlyHint: true } },
   { name: "glade_list_documents", description: "List Glade governance documents.", inputSchema: obj({ limit: int({ minimum: 1, maximum: 200, default: 30 }) }), annotations: { readOnlyHint: true } },
   { name: "glade_draft_decision_candidate", description: "Structure something that may deserve to become a Glade decision. This does not save anything.", inputSchema: obj({ title: str({ minLength: 1 }), proposedOutcome: str({ minLength: 1 }), whyItMayNeedDecision: str({ minLength: 1 }), evidence: { type: "array", items: str({ minLength: 1 }), default: [] }, suggestedReviewDate: str() }, ["title", "proposedOutcome", "whyItMayNeedDecision"]), annotations: { readOnlyHint: true } },
@@ -41,7 +42,7 @@ export class DirectToolHub implements ToolHub {
   private readonly defaultSpace = s(process.env.SWELLS_SPACE_ID);
 
   async connect() { return this.listTools(); }
-  listTools() { return tools.filter((tool) => tool.name !== "glade_create_action" || process.env.GLADE_ACTION_WRITES_ENABLED === "true").map((tool) => ({ ...tool })); }
+  listTools() { return tools.filter((tool) => !["glade_create_action", "glade_update_action"].includes(tool.name) || process.env.GLADE_ACTION_WRITES_ENABLED === "true").map((tool) => ({ ...tool })); }
   requiresApproval(name: string) { return name === "glade_draft_decision_candidate" || tools.find((tool) => tool.name === name)?.annotations?.readOnlyHint !== true; }
   private space(args: Record<string, unknown>) {
     const id = s(args.spaceId) || this.defaultSpace;
@@ -126,9 +127,25 @@ export class DirectToolHub implements ToolHub {
         if (!description) throw new Error("description is required");
         const ownerName = s(args.ownerName);
         const dueDate = s(args.dueDate);
+        const metadata = args.metadata && typeof args.metadata === "object" && !Array.isArray(args.metadata)
+          ? args.metadata as Record<string, unknown>
+          : undefined;
         return jsonToolResult(await this.glade("/api/v1/actions", {
           method: "POST",
-          body: JSON.stringify({ description, ...(ownerName ? { ownerName } : {}), ...(dueDate ? { dueDate } : {}) }),
+          body: JSON.stringify({ description, ...(ownerName ? { ownerName } : {}), ...(dueDate ? { dueDate } : {}), ...(metadata ? { metadata } : {}) }),
+        }));
+      }
+      case "glade_update_action": {
+        const actionId = s(args.actionId);
+        if (!actionId) throw new Error("actionId is required");
+        const updates: Record<string, unknown> = {};
+        if (args.description !== undefined) updates.description = args.description;
+        if (args.ownerName !== undefined) updates.ownerName = args.ownerName;
+        if (args.dueDate !== undefined) updates.dueDate = args.dueDate;
+        if (args.status !== undefined) updates.status = args.status;
+        return jsonToolResult(await this.glade(`/api/v1/actions/${actionId}`, {
+          method: "PATCH",
+          body: JSON.stringify(updates),
         }));
       }
       case "glade_list_meetings": return jsonToolResult(await this.glade(`/api/v1/meetings?limit=${n(args.limit, 30, 200)}`));
