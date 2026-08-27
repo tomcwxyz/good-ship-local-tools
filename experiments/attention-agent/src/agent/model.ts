@@ -28,7 +28,8 @@ Rules:
 14. Interpret dates against the current date. Do not describe past meetings, deadlines or commitments as upcoming unless the evidence explicitly says they were rescheduled, recurring, or remain future-facing.
 15. Do not end a response with offers such as "if you want, I can propose/save this" when you have already judged a write-worthy item. Invoke the approval-gated tool instead.
 16. Before proposing a Swells Observation, use swells_list_spaces unless a valid target space was already established in this turn. Choose an explicit spaceId from the available spaces using the space name, description and conversation context. Never rely on a configured default for a Swells write; the approval UI will show the destination and let the user change it.
-17. Use calendar_find_events when the user asks about upcoming meetings, preparation, recent scheduled work, or when calendar evidence would materially improve the answer. Treat calendar output as transient evidence. Do not create durable records merely because an event exists.`;
+17. Use calendar_find_events when the user asks about upcoming meetings, preparation, recent scheduled work, or when calendar evidence would materially improve the answer. Treat calendar output as transient evidence. Do not create durable records merely because an event exists.\n18. For broad questions about what deserves attention today or this week, include a bounded near-term calendar read alongside relevant durable memory and commitments.
+19. For preparation for the next or a named conversation, use calendar context to establish the actual event, date and participants when available, then resolve the relevant Tending relationship and read its durable context. Do not infer the next meeting from relationship memory alone.`;
 
 function systemPrompt() {
   const timeZone = optionalEnv("AGENT_TIME_ZONE") || "Europe/London";
