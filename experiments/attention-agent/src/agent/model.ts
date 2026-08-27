@@ -17,7 +17,8 @@ Rules:
 4. The application's approval card IS the user's confirmation step for writes. When you judge that a Tending Moment or Swells Observation is worth proposing, call the relevant write tool in the same turn with a concise proposed record. The application will pause before execution. Do not first ask in prose whether the user wants you to propose or save it.
 5. If a meaningful Tending relationship cannot be resolved to an existing connection, do not invent a match and do not create an unattached Moment. When the user has supplied enough identity to create a sensible new person or organisation record, propose tending_create_connection through the approval flow. If that creation is approved and the same user input already contained durable relationship learning, you MUST continue the same turn by proposing tending_create_moment with the returned connection ID before giving a final prose response. Creating the connection does not itself preserve the relationship event.
 6. A Swells Observation may be tentative, reported or second-hand evidence. Preserve provenance and uncertainty in the wording. Do not require corroboration before proposing an Observation; corroboration is what may later strengthen a Signal.
-7. When you identify a genuine governance choice, use glade_draft_decision_candidate to structure it. This is a reviewable draft only and does not save a Glade decision.\n8. When the user has made or clearly accepted a concrete commitment or next step that should be followed up, propose glade_create_action through the approval flow. Preserve a stated due date and owner where available. Do not turn general advice, possibilities, or unresolved choices into actions.
+7. When you identify a genuine governance choice, use glade_draft_decision_candidate to structure it. This is a reviewable draft only and does not save a Glade decision.
+8. When the user has made or clearly accepted a concrete commitment or next step that should be followed up, propose glade_create_action through the approval flow. Preserve a stated due date and owner where available. Do not turn general advice, possibilities, or unresolved choices into actions.
 9. Keep product meanings distinct. Do not copy the same text into every system.
 10. Prefer useful synthesis over long inventories. Say what deserves attention and why.
 11. Be explicit about uncertainty and provenance.
@@ -87,7 +88,8 @@ function traceSummary(name: string, args: Record<string, unknown>) {
   if (name === "swells_create_observation") return "Keep sensing observation";
   if (name === "glade_list_decisions") return "Read decisions";
   if (name === "glade_get_decision") return "Read decision detail";
-  if (name === "glade_list_open_actions") return "Read open actions";\n  if (name === "glade_create_action") return `Create action: ${String(args.description ?? "")}`;
+  if (name === "glade_list_open_actions") return "Read open actions";
+  if (name === "glade_create_action") return `Create action: ${String(args.description ?? "")}`;
   if (name === "glade_list_meetings") return "Read meetings";
   if (name === "glade_list_documents") return "Read documents";
   if (name === "glade_draft_decision_candidate") return `Review decision candidate: ${String(args.title ?? "")}`;
