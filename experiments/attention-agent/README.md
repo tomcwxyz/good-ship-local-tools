@@ -29,9 +29,16 @@ SWELLS_SPACE_ID=<space-uuid>
 
 GLADE_BASE_URL=https://<deployed-glade>
 GLADE_API_KEY=<space-api-key>
+
+# Only needed when calling Vercel-protected preview deployments:
+TENDING_VERCEL_BYPASS_SECRET=
+SWELLS_VERCEL_BYPASS_SECRET=
+GLADE_VERCEL_BYPASS_SECRET=
 ```
 
 The browser asks for the pilot access key. It is kept in session storage only. The server keeps no conversation database: model/tool history is encrypted with `AGENT_STATE_SECRET` and returned to the browser as an opaque state token between turns.
+
+Tending and Swells can remain on protected Vercel PR previews. Generate a **Protection Bypass for Automation** secret on each preview project and give the agent the corresponding `*_VERCEL_BYPASS_SECRET`; it sends the `x-vercel-protection-bypass` header server-to-server. There is no need to make those previews public or merge their pilot PRs.
 
 Read tools run without interruption. A proposed Tending Moment or Swells Observation pauses the agent and appears as an approval card. Approve to write it through the normal product API, or choose **Not now** and let the agent continue.
 
