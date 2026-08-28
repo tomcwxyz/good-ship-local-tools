@@ -3,6 +3,7 @@
 ## 0.10.0 — in progress
 
 - rename the product to **Sets**, with the line “Small, private tools for repeatable work”, a short Rotterdam-wave origin story, Sets-branded launcher/tool chrome and Sets release artefact names;
+- add a local secret generator using `crypto.getRandomValues()`, with Hex, Base64, Base64URL, alphanumeric and UUID v4 output, 128/256/512-bit and custom strengths, common presets, `.env` output and terminal-command equivalents;
 - turn the PDF page organiser into a local PDF workbench with page selection/ranges, extraction, blank pages, JPEG/PNG pages, page numbering, diagonal watermarks, crop-box controls, optional form flattening and explicit output metadata handling;
 - inspect PDF source forms, JavaScript actions, annotations and digital signatures while building a pack, and require acknowledgement before exporting signed sources;
 - add a separate PDF sanitiser that structurally rebuilds visible pages into a fresh document without carrying the original document catalog, annotations/links, forms, attachments, JavaScript, metadata or signatures;

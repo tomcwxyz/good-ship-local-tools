@@ -22,6 +22,8 @@ export const TOOLS = [
     blurb:'Merge, extract, reorder and build PDF packs with blank/image pages, numbering, watermarks, crop boxes and form flattening.', keywords:'pdf merge split extract reorder rotate delete duplicate pages number watermark crop form flatten image blank' },
   { id:'hash', name:'File checksum', category:'files',
     blurb:'Calculate SHA-256 fingerprints and compare files with a checksum you have been given.', keywords:'sha sha256 checksum hash fingerprint verify file' },
+  { id:'secret', name:'Secret generator', category:'security',
+    blurb:'Generate cryptographically secure app, session and webhook secrets in common formats, with .env and terminal equivalents.', keywords:'secret key random token env jwt session webhook hex base64 base64url uuid openssl password security' },
   { id:'csv', name:'CSV cleaner', category:'data',
     blurb:'Trim, remove empty rows or columns, deduplicate, handle common encodings and convert to JSON.', keywords:'csv excel encoding utf8 dedupe clean data json' },
   { id:'convert', name:'Data converter', category:'data',
