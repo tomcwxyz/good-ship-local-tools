@@ -27,7 +27,12 @@ for (const html of ['index.html', ...TOOLS.map(tool => `tools/${tool.id}/index.h
   let source = readFileSync(file, 'utf8');
   source = source
     .replace('<title>The Good Ship · ', '<title>Sets · ')
-    .replace("connect-src 'self';", "connect-src 'none';");
+    .replace("connect-src 'self';", "connect-src https://plausible.io;")
+    .replace("script-src 'self';", "script-src 'self' https://good-ship.co.uk https://plausible.io;")
+    .replace(
+      '</head>',
+      '  <script async src="https://good-ship.co.uk/analytics/browser.js"></script>\\n</head>',
+    );
   writeFileSync(file, source);
 }
 
