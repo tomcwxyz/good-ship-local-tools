@@ -100,7 +100,7 @@ After 0.10, **stop feature expansion** and prove Sets in use. 1.0 should mean:
 
 1. the complete 0.10 standalone set passes source checks, unit tests, production verification and Chromium/Firefox/WebKit direct-file smoke tests;
 2. a tagged release has been built through the release workflow and downloadable artefacts/checksums have been tested on real desktop and mobile devices;
-3. the launcher is hosted somewhere easy to reach without weakening the local-only trust model;
+3. the launcher is hosted at **good-ship.co.uk/sets/** without weakening the local-only trust model;
 4. a small group has used Sets for real document/data work and any serious correctness/usability failures have been fixed;
 5. documentation clearly separates metadata cleaning, structural PDF sanitation and raster redaction so users can choose the right disclosure boundary.
 

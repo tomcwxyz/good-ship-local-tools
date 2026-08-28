@@ -149,6 +149,8 @@ The workflow refuses to publish when the Git tag and `package.json` version do n
 
 ## Deployment
 
+The canonical hosted version is **https://good-ship.co.uk/sets/**. The Good Ship website pulls from this repository's `main` branch, runs the normal Sets checks/tests and `build:hosted` verification, then publishes that generated bundle at `/sets/`. This repository remains the source of truth.
+
 `dist/` is static. It can be hosted at a root domain or subpath, and the individual generated HTML files can also be attached to releases for direct download/use.
 
 A PWA/offline launcher can be added later without changing the standalone-tool contract; see `ROADMAP.md`.
