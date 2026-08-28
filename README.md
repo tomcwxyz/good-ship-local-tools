@@ -2,7 +2,7 @@
 
 **Small, private tools for repeatable work.**
 
-Sets is a collection of local-first browser tools for file, document and data jobs that are too often handed to random websites. Files are processed on the device; the first-party source contains no network calls, no analytics, no cookies and no remote fonts.
+Sets is a collection of local-first browser tools for file, document and data jobs that are too often handed to random websites. Files and tool content are processed on the device. Standalone/local builds contain no network calls, analytics, cookies or remote fonts; the hosted `good-ship.co.uk/sets` build adds privacy-friendly Plausible pageview analytics only, and never sends tool inputs or file contents.
 
 Each tool builds as a **single self-contained HTML file**. You can host the whole launcher, or hand somebody one tool that opens directly in a modern browser.
 
@@ -40,7 +40,7 @@ Sets is made by **The Good Ship**.
 
 - first-party JavaScript contains no `fetch`, XHR, WebSocket, EventSource or beacon calls;
 - secret generation uses the browser Web Crypto random-number generator and generated values are never persisted by Sets;
-- every HTML entry has a Content Security Policy that blocks unexpected external resources;
+- every standalone HTML entry has a Content Security Policy that blocks external resources; the hosted build allows only the shared Good Ship analytics script and Plausible endpoint;
 - remote font loading has been removed;
 - PDF.js scripting and eval are explicitly disabled when opening PDFs;
 - `npm run check` enforces the no-network-source rule and source CSP coverage in CI;
