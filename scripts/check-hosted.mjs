@@ -15,10 +15,15 @@ for (const rel of expected) {
     continue;
   }
   const html = readFileSync(file, 'utf8');
-  if (!html.includes("connect-src 'none'")) errors.push(`${rel}: CSP does not seal connect-src`);
+  if (!html.includes("connect-src https://plausible.io;")) errors.push(`${rel}: hosted CSP does not limit connect-src to Plausible`);
+  if (!html.includes("script-src 'self' https://good-ship.co.uk https://plausible.io;")) errors.push(`${rel}: hosted CSP does not allow only the shared tracker dependencies`);
   if (!html.includes("object-src 'none'")) errors.push(`${rel}: CSP does not seal object-src`);
   if (!html.includes("form-action 'none'")) errors.push(`${rel}: CSP does not seal form-action`);
-  if (/<(?:script|link)[^>]+(?:src|href)=["']https?:/i.test(html)) errors.push(`${rel}: external script/style URL found`);
+  if (!html.includes('<script async src="https://good-ship.co.uk/analytics/browser.js"></script>')) errors.push(`${rel}: shared Good Ship analytics tracker missing`);
+  const externalAssets = [...html.matchAll(/<(?:script|link)[^>]+(?:src|href)=["'](https?:[^"']+)/gi)].map(match => match[1]);
+  for (const url of externalAssets) {
+    if (url !== "https://good-ship.co.uk/analytics/browser.js") errors.push(`${rel}: unexpected external script/style URL: ${url}`);
+  }
   if (/<(?:iframe|object|embed)\b/i.test(html)) errors.push(`${rel}: active embed element found`);
 }
 
