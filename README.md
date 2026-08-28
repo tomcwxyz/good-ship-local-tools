@@ -40,7 +40,7 @@ Sets is made by **The Good Ship**.
 
 - first-party JavaScript contains no `fetch`, XHR, WebSocket, EventSource or beacon calls;
 - secret generation uses the browser Web Crypto random-number generator and generated values are never persisted by Sets;
-- every HTML entry has a Content Security Policy that blocks unexpected external resources;
+- every standalone HTML entry has a Content Security Policy that blocks external resources; the hosted build allows only the shared Good Ship analytics script and Plausible endpoint;
 - remote font loading has been removed;
 - PDF.js scripting and eval are explicitly disabled when opening PDFs;
 - `npm run check` enforces the no-network-source rule and source CSP coverage in CI;
