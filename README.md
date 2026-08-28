@@ -2,7 +2,7 @@
 
 **Small, private tools for repeatable work.**
 
-Sets is a collection of local-first browser tools for file, document and data jobs that are too often handed to random websites. Files are processed on the device; the first-party source contains no network calls, no analytics, no cookies and no remote fonts.
+Sets is a collection of local-first browser tools for file, document and data jobs that are too often handed to random websites. Files and tool content are processed on the device. Standalone/local builds contain no network calls, analytics, cookies or remote fonts; the hosted `good-ship.co.uk/sets` build adds privacy-friendly Plausible pageview analytics only, and never sends tool inputs or file contents.
 
 Each tool builds as a **single self-contained HTML file**. You can host the whole launcher, or hand somebody one tool that opens directly in a modern browser.
 
