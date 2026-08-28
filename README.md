@@ -29,6 +29,7 @@ Sets is made by **The Good Ship**.
 | Image converter | SVG/PNG/JPEG/WebP conversion, resize and compression for one image or a batch | Re-encodes pixels. Batch mode applies one aspect-preserving resize policy, uses bounded sequential processing and blocks unsafe SVGs. |
 | PDF workbench | Builds and reorganises PDF packs | Merge, extract/select ranges, reorder, rotate, duplicate/remove, add blank/image pages, page numbers, watermark, crop boxes, optional form flattening and explicit metadata handling. |
 | File checksum | Calculates and compares SHA-256 fingerprints | Uses the browser Web Crypto API; no dependency. |
+| Secret generator | Generates app, session, webhook and key material in Hex, Base64, Base64URL, alphanumeric and UUID formats | Uses `crypto.getRandomValues()` locally, never persists generated values, and provides ready-to-copy `.env` and terminal equivalents. |
 | CSV/TSV cleaner | Trim cells/headers, remove empty rows/columns, dedupe by chosen keys, scoped find/replace, CSV/TSV→JSON | Auto-detects common encodings and comma/tab/semicolon/pipe delimiters; output is UTF-8 and preserves the chosen delimiter. |
 | Accessibility colour checker | WCAG 2.x text/UI contrast, palette audit, focus colours and colour-vision previews | Context-aware text thresholds, contrast suggestions and clear limits on what the tool can establish. |
 | Text & document diff | Line, word or character comparison of pasted text or locally extracted TXT/Markdown, DOCX and PDF text | Comparison is based on extracted text, not layout, styles, comments, tracked changes or images. |
@@ -38,6 +39,7 @@ Sets is made by **The Good Ship**.
 
 
 - first-party JavaScript contains no `fetch`, XHR, WebSocket, EventSource or beacon calls;
+- secret generation uses the browser Web Crypto random-number generator and generated values are never persisted by Sets;
 - every HTML entry has a Content Security Policy that blocks unexpected external resources;
 - remote font loading has been removed;
 - PDF.js scripting and eval are explicitly disabled when opening PDFs;
@@ -72,6 +74,7 @@ tools/
   image/
   pdf/
   hash/
+  secret/
   csv/
   contrast/
   diff/

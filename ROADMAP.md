@@ -17,7 +17,7 @@ sensitive file, awkward dataset or one-off document job.
 
 Sets now has a sealed local-only build model, CSP/network checks, standalone HTML artefacts, reproducible Node 22 installs, release checksums, Chromium/Firefox/WebKit direct-file smoke tests and a tag-gated release workflow.
 
-Product work already covers image metadata cleaning/batch conversion, Office and PDF privacy inspection/reports, raster redaction, CSV/TSV cleaning, data conversion, checksums, accessibility colour checks, and a page-organising PDF editor.
+Product work already covers image metadata cleaning/batch conversion, Office and PDF privacy inspection/reports, raster redaction, CSV/TSV cleaning, data conversion, checksums, secure secret generation, accessibility colour checks, and a page-organising PDF editor.
 
 ## 0.10 — final pre-1.0 workflow tranche
 
@@ -56,6 +56,10 @@ The existing diff can now locally extract text from TXT/Markdown, DOCX and PDF o
 ### Batch image workbench — already implemented
 
 0.6 already covers the intended batch image workflow: format conversion, aspect-preserving maximum-edge resize, quality controls, unsafe SVG rejection, sequential processing, collision-safe ZIP names and bounded input/output memory.
+
+### Secret generator — implemented
+
+A final small utility before 1.0 covers a recurring developer/operations job without turning Sets into a generic toolbox: generate cryptographically secure Hex, Base64, Base64URL and alphanumeric secrets plus UUID v4 values locally. Presets cover app/session/webhook/key-material use, with explicit strength, ready-to-copy `.env` lines and equivalent terminal commands. Generated values are deliberately not stored or added to a history.
 
 ## Candidates after 1.0 — driven by use
 

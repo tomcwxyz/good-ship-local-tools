@@ -4,7 +4,7 @@ import { pathToFileURL } from 'node:url';
 import { chromium, firefox, webkit } from 'playwright';
 
 const distDir = path.resolve(process.argv[2] || 'dist');
-const expectedHtmlFiles = 16; // launcher + 15 tools in v0.10
+const expectedHtmlFiles = 17; // launcher + 16 tools in v0.10
 const smokePdf = Buffer.from('JVBERi0xLjMKJeLjz9MKMSAwIG9iago8PAovUHJvZHVjZXIgKHB5cGRmKQovVGl0bGUgKFNtb2tlIFBERikKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAxCi9LaWRzIFsgNCAwIFIgXQo+PgplbmRvYmoKMyAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFIKPj4KZW5kb2JqCjQgMCBvYmoKPDwKL1R5cGUgL1BhZ2UKL1Jlc291cmNlcyA8PAo+PgovTWVkaWFCb3ggWyAwLjAgMC4wIDMwMCA0MDAgXQovUGFyZW50IDIgMCBSCj4+CmVuZG9iagp4cmVmCjAgNQowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMTUgMDAwMDAgbiAKMDAwMDAwMDA3MyAwMDAwMCBuIAowMDAwMDAwMTMyIDAwMDAwIG4gCjAwMDAwMDAxODEgMDAwMDAgbiAKdHJhaWxlcgo8PAovU2l6ZSA1Ci9Sb290IDMgMCBSCi9JbmZvIDEgMCBSCj4+CnN0YXJ0eHJlZgoyNzUKJSVFT0YK', 'base64');
 
 async function findHtml(dir) {
@@ -58,6 +58,24 @@ async function smokePage(browser, browserName, file) {
         const text = document.body?.innerText || '';
         return text.includes('1 file hashed') && /\b[0-9a-f]{64}\b/i.test(text);
       }, `${browserName} checksum fixture`);
+    }
+
+    if (relative === 'tools/secret/index.html') {
+      const output = page.locator('#secret-output');
+      await page.waitForFunction(() => {
+        const value = document.querySelector('#secret-output')?.value || '';
+        return value.length >= 40;
+      }, null, { timeout:10_000 });
+      await page.locator('#secret-format').selectOption('hex');
+      await page.locator('#secret-strength').selectOption('256');
+      const secretState = await page.evaluate(() => ({
+        secret:document.querySelector('#secret-output')?.value || '',
+        env:document.querySelector('#secret-env-line')?.value || '',
+        command:document.querySelector('#secret-command')?.value || '',
+      }));
+      if (!/^[0-9a-f]{64}$/.test(secretState.secret)) failures.push(`secret fixture was not 256-bit hex: ${secretState.secret}`);
+      if (!secretState.env.endsWith(secretState.secret)) failures.push('secret .env output does not contain the generated value');
+      if (secretState.command !== 'openssl rand -hex 32') failures.push(`unexpected secret terminal command: ${secretState.command}`);
     }
 
     if (relative === 'tools/csv/index.html') {
