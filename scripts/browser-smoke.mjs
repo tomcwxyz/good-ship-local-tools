@@ -4,7 +4,7 @@ import { pathToFileURL } from 'node:url';
 import { chromium, firefox, webkit } from 'playwright';
 
 const distDir = path.resolve(process.argv[2] || 'dist');
-const expectedHtmlFiles = 17; // launcher + 16 tools in v0.10
+const expectedHtmlFiles = 18; // launcher + 17 tools
 const smokePdf = Buffer.from('JVBERi0xLjMKJeLjz9MKMSAwIG9iago8PAovUHJvZHVjZXIgKHB5cGRmKQovVGl0bGUgKFNtb2tlIFBERikKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAxCi9LaWRzIFsgNCAwIFIgXQo+PgplbmRvYmoKMyAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFIKPj4KZW5kb2JqCjQgMCBvYmoKPDwKL1R5cGUgL1BhZ2UKL1Jlc291cmNlcyA8PAo+PgovTWVkaWFCb3ggWyAwLjAgMC4wIDMwMCA0MDAgXQovUGFyZW50IDIgMCBSCj4+CmVuZG9iagp4cmVmCjAgNQowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMTUgMDAwMDAgbiAKMDAwMDAwMDA3MyAwMDAwMCBuIAowMDAwMDAwMTMyIDAwMDAwIG4gCjAwMDAwMDAxODEgMDAwMDAgbiAKdHJhaWxlcgo8PAovU2l6ZSA1Ci9Sb290IDMgMCBSCi9JbmZvIDEgMCBSCj4+CnN0YXJ0eHJlZgoyNzUKJSVFT0YK', 'base64');
 
 async function findHtml(dir) {
@@ -52,6 +52,19 @@ async function smokePage(browser, browserName, file) {
     if (state.externalAssets.length) failures.push(`external asset elements found: ${state.externalAssets.join(', ')}`);
 
     const relative = rel(file);
+    if (relative === 'tools/document-markdown/index.html') {
+      await page.locator('input[type="file"]').setInputFiles({
+        name:'people.csv',
+        mimeType:'text/csv',
+        buffer:Buffer.from('Name,Role\\nAda,Researcher\\nGrace,Engineer\\n'),
+      });
+      await waitForBody(page, () => {
+        const text = document.body?.innerText || '';
+        const output = document.querySelector('textarea')?.value || '';
+        return text.includes('Converted people.csv') && output.includes('| Name | Role |') && output.includes('| Ada | Researcher |');
+      }, `${browserName} Document to Markdown fixture`, 20_000);
+    }
+
     if (relative === 'tools/hash/index.html') {
       await page.locator('input[type="file"]').setInputFiles({ name:'smoke.txt', mimeType:'text/plain', buffer:Buffer.from('sets browser smoke test\n') });
       await waitForBody(page, () => {
