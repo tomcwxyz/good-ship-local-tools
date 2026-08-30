@@ -12,3 +12,12 @@ The distinctive Good Ship / Sets visual identity and brand assets are not
 licensed for use as branding for derived products. Forks and derivative works
 should use their own name and identity unless separate permission has been
 granted.
+
+Third-party software
+--------------------
+
+The Document → Markdown tool includes @firecrawl/anydoc-wasm 0.2.4,
+Copyright (c) 2026 Sideguide Technologies Inc., licensed under the MIT
+License. The MIT licence text and upstream source are available at:
+https://github.com/firecrawl/anydoc
+

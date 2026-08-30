@@ -16,7 +16,10 @@ for (const rel of expected) {
   }
   const html = readFileSync(file, 'utf8');
   if (!html.includes("connect-src https://plausible.io;")) errors.push(`${rel}: hosted CSP does not limit connect-src to Plausible`);
-  if (!html.includes("script-src 'self' https://good-ship.co.uk https://plausible.io;")) errors.push(`${rel}: hosted CSP does not allow only the shared tracker dependencies`);
+  const expectedScriptSrc = rel.includes('document-markdown')
+    ? "script-src 'self' 'wasm-unsafe-eval' https://good-ship.co.uk https://plausible.io;"
+    : "script-src 'self' https://good-ship.co.uk https://plausible.io;";
+  if (!html.includes(expectedScriptSrc)) errors.push(`${rel}: hosted CSP does not match the expected script boundary`);
   if (!html.includes("object-src 'none'")) errors.push(`${rel}: CSP does not seal object-src`);
   if (!html.includes("form-action 'none'")) errors.push(`${rel}: CSP does not seal form-action`);
   if (!html.includes('<script async src="https://good-ship.co.uk/analytics/browser.js"></script>')) errors.push(`${rel}: shared Good Ship analytics tracker missing`);

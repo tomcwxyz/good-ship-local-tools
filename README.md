@@ -28,7 +28,7 @@ Sets is made by **The Good Ship**.
 | Redaction | Blacks out regions of images and PDFs with zoom, PDF page navigation and keyboard rectangle entry | Output is rasterised/flattened. Normalised boxes stay aligned across preview/export resolutions; PDF text, links, forms, annotations and hidden document data are not carried over. |
 | Image converter | SVG/PNG/JPEG/WebP conversion, resize and compression for one image or a batch | Re-encodes pixels. Batch mode applies one aspect-preserving resize policy, uses bounded sequential processing and blocks unsafe SVGs. |
 | PDF workbench | Builds and reorganises PDF packs | Merge, extract/select ranges, reorder, rotate, duplicate/remove, add blank/image pages, page numbers, watermark, crop boxes, optional form flattening and explicit metadata handling. |
-| File checksum | Calculates and compares SHA-256 fingerprints | Uses the browser Web Crypto API; no dependency. |
+| Document → Markdown | Converts Word, PowerPoint, spreadsheets, OpenDocument, RTF, EPUB, CSV and text-based PDF files into Markdown | Runs Anydoc locally as WebAssembly. Scanned/image-only PDF pages are reported as needing OCR and are never uploaded for hosted OCR. |\n| File checksum | Calculates and compares SHA-256 fingerprints | Uses the browser Web Crypto API; no dependency. |
 | Secret generator | Generates app, session, webhook and key material in Hex, Base64, Base64URL, alphanumeric and UUID formats | Uses `crypto.getRandomValues()` locally, never persists generated values, and provides ready-to-copy `.env` and terminal equivalents. |
 | CSV/TSV cleaner | Trim cells/headers, remove empty rows/columns, dedupe by chosen keys, scoped find/replace, CSV/TSV→JSON | Auto-detects common encodings and comma/tab/semicolon/pipe delimiters; output is UTF-8 and preserves the chosen delimiter. |
 | Accessibility colour checker | WCAG 2.x text/UI contrast, palette audit, focus colours and colour-vision previews | Context-aware text thresholds, contrast suggestions and clear limits on what the tool can establish. |
@@ -40,7 +40,7 @@ Sets is made by **The Good Ship**.
 
 - first-party JavaScript contains no `fetch`, XHR, WebSocket, EventSource or beacon calls;
 - secret generation uses the browser Web Crypto random-number generator and generated values are never persisted by Sets;
-- every standalone HTML entry has a Content Security Policy that blocks external resources; the hosted build allows only the shared Good Ship analytics script and Plausible endpoint;
+- every standalone HTML entry has a Content Security Policy that blocks external resources; the Document → Markdown entry alone permits `wasm-unsafe-eval` so the pinned WebAssembly module can execute, while general JavaScript eval remains blocked; the hosted build allows only the shared Good Ship analytics script and Plausible endpoint;
 - remote font loading has been removed;
 - PDF.js scripting and eval are explicitly disabled when opening PDFs;
 - `npm run check` enforces the no-network-source rule and source CSP coverage in CI;
@@ -99,7 +99,7 @@ The build discovers tool entries from the same manifest used by the launcher, so
 
 ## Develop and verify
 
-Requires Node 22. Direct dependencies are pinned and `package-lock.json` is committed from a clean Node 22 install. Use `npm ci` when reproducing or verifying the checked-in dependency graph; use `npm install` only when intentionally changing dependencies. The project uses `fflate` for local ZIP/OOXML batch work; it has no runtime dependencies of its own.
+Requires Node 22. Direct dependencies are pinned and `package-lock.json` is committed from a clean Node 22 install. Use `npm ci` when reproducing or verifying the checked-in dependency graph; use `npm install` only when intentionally changing dependencies. The project uses `fflate` for local ZIP/OOXML batch work and `@firecrawl/anydoc-wasm` for the Document → Markdown converter. Anydoc is initialised from an inlined WebAssembly payload so standalone builds do not fetch a runtime asset. Builds fetch the pinned 0.2.4 WASM file into an ignored source cache and verify its exact byte size and SHA-256 before Vite embeds it.
 
 ```bash
 npm ci

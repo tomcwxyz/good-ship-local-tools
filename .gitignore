@@ -1,2 +1,4 @@
 node_modules
 dist
+
+src/vendor/anydoc_wasm_bg.wasm

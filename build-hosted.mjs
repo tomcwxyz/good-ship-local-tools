@@ -2,6 +2,9 @@ import { build } from 'vite';
 import { resolve } from 'node:path';
 import { rmSync, readFileSync, writeFileSync } from 'node:fs';
 import { TOOLS } from './src/tools.js';
+import { ensureAnydocWasm } from './scripts/prepare-anydoc.mjs';
+
+await ensureAnydocWasm();
 
 const inputs = {
   launcher: resolve('index.html'),
@@ -16,6 +19,8 @@ await build({
   logLevel: 'warn',
   build: {
     target: 'es2022',
+    assetsInlineLimit: (filePath) =>
+      filePath.endsWith('anydoc_wasm_bg.wasm') ? true : undefined,
     outDir: 'dist-hosted',
     emptyOutDir: true,
     rolldownOptions: { input: inputs },
@@ -25,10 +30,11 @@ await build({
 for (const html of ['index.html', ...TOOLS.map(tool => `tools/${tool.id}/index.html`)]) {
   const file = resolve('dist-hosted', html);
   let source = readFileSync(file, 'utf8');
+  const wasmPolicy = html.includes('document-markdown') ? " 'wasm-unsafe-eval'" : '';
   source = source
     .replace('<title>The Good Ship · ', '<title>Sets · ')
     .replace("connect-src 'self';", "connect-src https://plausible.io;")
-    .replace("script-src 'self';", "script-src 'self' https://good-ship.co.uk https://plausible.io;")
+    .replace("script-src 'self';", `script-src 'self'${wasmPolicy} https://good-ship.co.uk https://plausible.io;`)
     .replace(
       '</head>',
       '  <script async src="https://good-ship.co.uk/analytics/browser.js"></script>\n</head>',

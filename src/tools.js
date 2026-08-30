@@ -20,6 +20,8 @@ export const TOOLS = [
     blurb:'Convert SVG, PNG, JPEG and WebP, resize/compress one image or apply one policy to a local batch.', keywords:'image photo batch resize compress convert svg png jpeg webp zip' },
   { id:'pdf', name:'PDF workbench', category:'files',
     blurb:'Merge, extract, reorder and build PDF packs with blank/image pages, numbering, watermarks, crop boxes and form flattening.', keywords:'pdf merge split extract reorder rotate delete duplicate pages number watermark crop form flatten image blank' },
+  { id:'document-markdown', name:'Document → Markdown', category:'files',
+    blurb:'Convert Word, PowerPoint, spreadsheets, OpenDocument, RTF, EPUB, CSV and text-based PDFs to Markdown entirely in the browser.', keywords:'document markdown convert doc docx odt rtf epub pdf ppt pptx xls xlsx ods odp csv local wasm anydoc' },
   { id:'hash', name:'File checksum', category:'files',
     blurb:'Calculate SHA-256 fingerprints and compare files with a checksum you have been given.', keywords:'sha sha256 checksum hash fingerprint verify file' },
   { id:'secret', name:'Secret generator', category:'security',

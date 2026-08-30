@@ -4,6 +4,9 @@ import { resolve } from 'path';
 import { rmSync, readFileSync, writeFileSync } from 'fs';
 import { createHash } from 'crypto';
 import { TOOLS } from './src/tools.js';
+import { ensureAnydocWasm } from './scripts/prepare-anydoc.mjs';
+
+await ensureAnydocWasm();
 
 const entries = [
   'index.html',
@@ -19,6 +22,8 @@ for (const html of entries) {
     logLevel: 'warn',
     build: {
       target: 'es2022',
+      assetsInlineLimit: (filePath) =>
+        filePath.endsWith('anydoc_wasm_bg.wasm') ? true : undefined,
       outDir: 'dist',
       emptyOutDir: false,
       rolldownOptions: { input: resolve(process.cwd(), html) },
@@ -40,9 +45,10 @@ function hardenBuiltHtml(path) {
   }
   if (!hashes.length) throw new Error(`No inlined production script found in ${path}`);
 
+  const wasmPolicy = path.includes('document-markdown') ? " 'wasm-unsafe-eval'" : '';
   html = html
     .replace('<title>The Good Ship · ', '<title>Sets · ')
     .replace("connect-src 'self';", "connect-src 'none';")
-    .replace("script-src 'self';", `script-src 'self' ${[...new Set(hashes)].join(' ')};`);
+    .replace("script-src 'self';", `script-src 'self'${wasmPolicy} ${[...new Set(hashes)].join(' ')};`);
   writeFileSync(path, html);
 }
