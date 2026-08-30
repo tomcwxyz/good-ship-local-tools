@@ -2,6 +2,9 @@ import { build } from 'vite';
 import { resolve } from 'node:path';
 import { rmSync, readFileSync, writeFileSync } from 'node:fs';
 import { TOOLS } from './src/tools.js';
+import { ensureAnydocWasm } from './scripts/prepare-anydoc.mjs';
+
+await ensureAnydocWasm();
 
 const inputs = {
   launcher: resolve('index.html'),
