@@ -61,7 +61,9 @@ async function smokePage(browser, browserName, file) {
       await waitForBody(page, () => {
         const text = document.body?.innerText || '';
         const output = document.querySelector('textarea')?.value || '';
-        return text.includes('Converted people.csv') && output.includes('| Name | Role |') && output.includes('| Ada | Researcher |');
+        return text.includes('Converted people.csv') &&
+          output.includes('|') &&
+          ['Name', 'Role', 'Ada', 'Researcher', 'Grace', 'Engineer'].every(value => output.includes(value));
       }, `${browserName} Document to Markdown fixture`, 20_000);
     }
 
