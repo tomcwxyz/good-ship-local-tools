@@ -45,9 +45,10 @@ function hardenBuiltHtml(path) {
   }
   if (!hashes.length) throw new Error(`No inlined production script found in ${path}`);
 
+  const wasmPolicy = path.includes('document-markdown') ? " 'wasm-unsafe-eval'" : '';
   html = html
     .replace('<title>The Good Ship · ', '<title>Sets · ')
     .replace("connect-src 'self';", "connect-src 'none';")
-    .replace("script-src 'self';", `script-src 'self' ${[...new Set(hashes)].join(' ')};`);
+    .replace("script-src 'self';", `script-src 'self'${wasmPolicy} ${[...new Set(hashes)].join(' ')};`);
   writeFileSync(path, html);
 }
