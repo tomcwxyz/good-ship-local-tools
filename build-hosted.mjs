@@ -19,6 +19,8 @@ await build({
   logLevel: 'warn',
   build: {
     target: 'es2022',
+    assetsInlineLimit: (filePath) =>
+      filePath.endsWith('anydoc_wasm_bg.wasm') ? true : undefined,
     outDir: 'dist-hosted',
     emptyOutDir: true,
     rolldownOptions: { input: inputs },
