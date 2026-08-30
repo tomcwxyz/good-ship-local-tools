@@ -22,6 +22,8 @@ for (const html of entries) {
     logLevel: 'warn',
     build: {
       target: 'es2022',
+      assetsInlineLimit: (filePath) =>
+        filePath.endsWith('anydoc_wasm_bg.wasm') ? true : undefined,
       outDir: 'dist',
       emptyOutDir: false,
       rolldownOptions: { input: resolve(process.cwd(), html) },
