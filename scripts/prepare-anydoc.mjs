@@ -6,18 +6,18 @@ import { fileURLToPath } from 'node:url';
 export const ANYDOC_WASM_VERSION = '0.2.4';
 export const ANYDOC_WASM_URL =
   'https://cdn.jsdelivr.net/npm/@firecrawl/anydoc-wasm@0.2.4/anydoc_wasm_bg.wasm';
-export const ANYDOC_WASM_PATH = resolve('.cache/anydoc/anydoc_wasm_bg.wasm');
+export const ANYDOC_WASM_PATH = resolve('src/vendor/anydoc_wasm_bg.wasm');
 
 // Filled after the first CI fetch, then enforced on every build.
-export const ANYDOC_WASM_SHA256 = null;
+export const ANYDOC_WASM_SHA256 = '9f37cd53b17bf4028ac5ae6a2ac4cf625e9c53be511797168780bab495de1a9e';
 
 function digest(bytes) {
   return createHash('sha256').update(bytes).digest('hex');
 }
 
 function assertWasm(bytes) {
-  if (bytes.length < 1024 * 1024) {
-    throw new Error(`Anydoc WASM download is unexpectedly small (${bytes.length} bytes).`);
+  if (bytes.length !== 6691779) {
+    throw new Error(`Anydoc WASM size mismatch: expected 6691779 bytes, got ${bytes.length}.`);
   }
   if (bytes[0] !== 0x00 || bytes[1] !== 0x61 || bytes[2] !== 0x73 || bytes[3] !== 0x6d) {
     throw new Error('Anydoc WASM download does not start with the WebAssembly magic bytes.');
