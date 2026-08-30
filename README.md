@@ -99,7 +99,7 @@ The build discovers tool entries from the same manifest used by the launcher, so
 
 ## Develop and verify
 
-Requires Node 22. Direct dependencies are pinned and `package-lock.json` is committed from a clean Node 22 install. Use `npm ci` when reproducing or verifying the checked-in dependency graph; use `npm install` only when intentionally changing dependencies. The project uses `fflate` for local ZIP/OOXML batch work and `@firecrawl/anydoc-wasm` for the Document → Markdown converter. Anydoc is initialised from an inlined WebAssembly payload so standalone builds do not fetch a runtime asset.
+Requires Node 22. Direct dependencies are pinned and `package-lock.json` is committed from a clean Node 22 install. Use `npm ci` when reproducing or verifying the checked-in dependency graph; use `npm install` only when intentionally changing dependencies. The project uses `fflate` for local ZIP/OOXML batch work and `@firecrawl/anydoc-wasm` for the Document → Markdown converter. Anydoc is initialised from an inlined WebAssembly payload so standalone builds do not fetch a runtime asset. Builds fetch the pinned 0.2.4 WASM file into an ignored source cache and verify its exact byte size and SHA-256 before Vite embeds it.
 
 ```bash
 npm ci
