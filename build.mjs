@@ -4,6 +4,9 @@ import { resolve } from 'path';
 import { rmSync, readFileSync, writeFileSync } from 'fs';
 import { createHash } from 'crypto';
 import { TOOLS } from './src/tools.js';
+import { ensureAnydocWasm } from './scripts/prepare-anydoc.mjs';
+
+await ensureAnydocWasm();
 
 const entries = [
   'index.html',
