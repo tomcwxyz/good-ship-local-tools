@@ -1,5 +1,5 @@
 import { initSync, formatFromBytes, formatFromPath, toMarkdownBytes } from '@firecrawl/anydoc-wasm';
-import wasmDataUrl from '../vendor/anydoc_wasm_bg.wasm?inline';
+import wasmDataUrl from '../vendor/anydoc_wasm_bg.wasm?url';
 
 let initialised = false;
 
