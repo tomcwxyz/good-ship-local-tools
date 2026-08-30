@@ -30,10 +30,11 @@ await build({
 for (const html of ['index.html', ...TOOLS.map(tool => `tools/${tool.id}/index.html`)]) {
   const file = resolve('dist-hosted', html);
   let source = readFileSync(file, 'utf8');
+  const wasmPolicy = html.includes('document-markdown') ? " 'wasm-unsafe-eval'" : '';
   source = source
     .replace('<title>The Good Ship · ', '<title>Sets · ')
     .replace("connect-src 'self';", "connect-src https://plausible.io;")
-    .replace("script-src 'self';", "script-src 'self' https://good-ship.co.uk https://plausible.io;")
+    .replace("script-src 'self';", `script-src 'self'${wasmPolicy} https://good-ship.co.uk https://plausible.io;`)
     .replace(
       '</head>',
       '  <script async src="https://good-ship.co.uk/analytics/browser.js"></script>\n</head>',
