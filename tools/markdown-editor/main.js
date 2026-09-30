@@ -108,7 +108,6 @@ async function openFile(file) {
   currentName = normaliseFilename(file.name);
   filename.value = currentName;
   update();
-if (handoff) editor.focus();
   editor.focus();
 }
 
@@ -190,3 +189,4 @@ root.append(
 );
 
 update();
+if (handoff) editor.focus();
