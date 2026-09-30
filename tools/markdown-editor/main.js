@@ -66,6 +66,20 @@ const preview = el('article', {
 });
 stats.id = 'markdown-stats';
 
+function readHandoff() {
+  if (!new URLSearchParams(window.location.search).has('handoff')) return null;
+  try {
+    const raw = sessionStorage.getItem('sets:markdown-editor:handoff');
+    sessionStorage.removeItem('sets:markdown-editor:handoff');
+    if (!raw) return null;
+    const value = JSON.parse(raw);
+    if (typeof value?.markdown !== 'string') return null;
+    return value;
+  } catch {
+    return null;
+  }
+}
+
 function normaliseFilename(value) {
   const trimmed = String(value || '').trim().replace(/[\\/:*?"<>|]+/g, '-');
   if (!trimmed) return 'untitled.md';
@@ -94,6 +108,7 @@ async function openFile(file) {
   currentName = normaliseFilename(file.name);
   filename.value = currentName;
   update();
+if (handoff) editor.focus();
   editor.focus();
 }
 
@@ -137,6 +152,14 @@ newButton.addEventListener('click', () => {
   update();
   editor.focus();
 });
+
+const handoff = readHandoff();
+if (handoff) {
+  editor.value = handoff.markdown;
+  currentName = normaliseFilename(handoff.filename || 'converted.md');
+  filename.value = currentName;
+  window.history.replaceState({}, '', window.location.pathname + window.location.hash);
+}
 
 root.append(
   el('div', { class:'gs-toolbar' },
