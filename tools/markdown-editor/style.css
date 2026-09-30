@@ -1,0 +1,20 @@
+.md-workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:.85rem;margin-top:1rem}
+.md-pane{min-width:0;background:var(--card);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;box-shadow:var(--shadow)}
+.md-pane-head{min-height:43px;padding:.55rem .75rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:.75rem;background:var(--card-alt);font-family:var(--fm);font-size:.75rem;color:var(--muted)}
+.md-editor{display:block;width:100%;min-height:62vh;border:0!important;border-radius:0!important;padding:1rem!important;resize:vertical;font-family:var(--fm)!important;font-size:.86rem!important;line-height:1.6!important;background:var(--card)!important}
+.md-editor:focus{outline:0}
+.md-preview{min-height:62vh;padding:1.1rem 1.25rem;overflow:auto;color:var(--body)}
+.md-preview>*:first-child{margin-top:0}.md-preview>*:last-child{margin-bottom:0}
+.md-preview h1,.md-preview h2,.md-preview h3,.md-preview h4,.md-preview h5,.md-preview h6{margin:1.45em 0 .55em;color:var(--text)}
+.md-preview h1{font-size:2rem}.md-preview h2{font-size:1.55rem;border-bottom:1px solid var(--border);padding-bottom:.3rem}.md-preview h3{font-size:1.25rem}
+.md-preview p{margin:.75rem 0}.md-preview ul,.md-preview ol{padding-left:1.5rem}
+.md-preview blockquote{margin:1rem 0;padding:.2rem 0 .2rem 1rem;border-left:3px solid var(--green);color:var(--muted)}
+.md-preview pre{overflow:auto;background:var(--navy-deep);color:#f7f4ed;padding:.9rem 1rem;border-radius:var(--r);font: .8rem/1.55 var(--fm)}
+.md-preview code{font-family:var(--fm);font-size:.88em;background:var(--card-alt);padding:.08em .28em;border-radius:4px}
+.md-preview pre code{background:transparent;padding:0;color:inherit}
+.md-preview a{overflow-wrap:anywhere}.md-preview hr{border:0;border-top:1px solid var(--border);margin:1.5rem 0}
+.md-preview table{width:100%;margin:1rem 0}.md-preview img{max-width:100%;height:auto}
+.md-empty{color:var(--muted);font-family:var(--fm);font-size:.82rem}
+.md-file-name{width:min(300px,100%);min-width:180px}
+.md-status{font-family:var(--fm);font-size:.72rem;color:var(--muted);margin-left:auto}
+@media (max-width:760px){.md-workspace{grid-template-columns:1fr}.md-editor,.md-preview{min-height:42vh}.md-file-name{width:100%;min-width:0}.md-status{width:100%;margin-left:0}}
