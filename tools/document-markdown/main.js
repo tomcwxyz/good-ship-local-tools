@@ -42,6 +42,7 @@ const output = el('textarea', {
 
 const copy = el('button', { class:'gs-btn gs-btn-primary', type:'button', disabled:true }, 'Copy Markdown');
 const save = el('button', { class:'gs-btn gs-btn-ghost', type:'button', disabled:true }, 'Download .md');
+const edit = el('button', { class:'gs-btn gs-btn-ghost', type:'button', disabled:true }, 'Edit in Markdown editor');
 const clear = el('button', { class:'gs-btn gs-btn-ghost', type:'button', disabled:true }, 'Clear');
 
 let currentFile = null;
@@ -54,6 +55,7 @@ function reset() {
   details.textContent = '';
   copy.disabled = true;
   save.disabled = true;
+  edit.disabled = true;
   clear.disabled = true;
 }
 
@@ -62,6 +64,7 @@ async function handleFile(file) {
   output.value = '';
   copy.disabled = true;
   save.disabled = true;
+  edit.disabled = true;
   clear.disabled = false;
   details.textContent = '';
 
@@ -86,6 +89,7 @@ async function handleFile(file) {
     output.value = result.markdown;
     copy.disabled = !result.markdown;
     save.disabled = !result.markdown;
+    edit.disabled = !result.markdown;
     status.style.color = 'var(--green-dk)';
     status.textContent = `Converted ${file.name} → ${markdownFilename(file.name)}`;
     details.textContent = [
@@ -114,6 +118,21 @@ save.addEventListener('click', () => {
   download(output.value, markdownFilename(currentFile.name), 'text/markdown;charset=utf-8');
 });
 
+edit.addEventListener('click', () => {
+  if (!currentFile || !output.value) return;
+  try {
+    sessionStorage.setItem('sets:markdown-editor:handoff', JSON.stringify({
+      markdown: output.value,
+      filename: markdownFilename(currentFile.name),
+      source: 'document-markdown',
+    }));
+    window.location.href = '../markdown-editor/index.html?handoff=1';
+  } catch {
+    status.style.color = 'var(--gold)';
+    status.textContent = 'This browser could not hand the document to the editor. Download the .md file and open it there instead.';
+  }
+});
+
 clear.addEventListener('click', reset);
 
 root.append(
@@ -125,7 +144,7 @@ root.append(
   status,
   details,
   el('div', { style:{ marginTop:'1rem' } }, output),
-  el('div', { class:'gs-toolbar', style:{ marginTop:'.65rem' } }, copy, save, clear),
+  el('div', { class:'gs-toolbar', style:{ marginTop:'.65rem' } }, copy, save, edit, clear),
   el('div', { class:'gs-warn', style:{ marginTop:'1rem' } },
     el('span', {}, 'Markdown is a structural text conversion, not a visual copy. Layout, page positioning and some embedded objects will not survive. Text-based PDFs convert locally; if a PDF contains scanned/image-only pages, Sets stops and identifies that OCR is needed rather than uploading the file.')),
 );
