@@ -32,6 +32,8 @@ export const TOOLS = [
     blurb:'Convert, prettify and validate between JSON, CSV and YAML without silently changing CSV IDs.', keywords:'json csv yaml convert validate prettify data' },
   { id:'diff', name:'Text & document diff', category:'text',
     blurb:'Compare pasted text or locally extracted TXT/Markdown, DOCX and PDF text by line, word or character.', keywords:'text document pdf docx diff compare line word character changes' },
+  { id:'markdown-editor', name:'Markdown editor', category:'text',
+    blurb:'Write or upload Markdown, edit it with a live side-by-side preview, then copy or download the result locally.', keywords:'markdown md editor preview write upload download text local' },
   { id:'contrast', name:'Accessibility colour checker', category:'accessibility',
     blurb:'Check WCAG text and UI contrast, audit palettes, inspect focus colours and preview colour-vision deficiencies.', keywords:'wcag accessibility contrast colour color palette focus aa aaa vision' },
 ];
